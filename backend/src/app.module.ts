@@ -2,9 +2,12 @@ import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
 import { RedisModule } from './redis/redis.module';
+import { UploadModule } from './upload/upload.module';
+import { ProductsModule } from './products/products.module';
+import { UsersModule } from './users/users.module';
+import { AuthModule } from './auth/auth.module';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { UploadModule } from './upload/upload.module';
 
 @Module({
   imports: [
@@ -22,8 +25,12 @@ import { UploadModule } from './upload/upload.module';
         uri: config.get<string>('MONGO_URI'),
       }),
     }),
-    UploadModule,
+
     RedisModule,
+    UploadModule,
+    ProductsModule,
+    UsersModule,
+    AuthModule,
   ],
   controllers: [AppController],
   providers: [AppService],
