@@ -6,11 +6,13 @@ import { UploadModule } from './upload/upload.module';
 import { ProductsModule } from './products/products.module';
 import { UsersModule } from './users/users.module';
 import { AuthModule } from './auth/auth.module';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
 import { CategoriesModule } from './categories/categories.module';
 import { CartModule } from './cart/cart.module';
 import { OrdersModule } from './orders/orders.module';
+import { EmailModule } from './email/email.module';
+import { PaymentsModule } from './payments/payments.module';
+import { AppController } from './app.controller';
+import { AppService } from './app.service';
 
 @Module({
   imports: [
@@ -35,8 +37,10 @@ import { OrdersModule } from './orders/orders.module';
     UsersModule,
     AuthModule,
     CategoriesModule,
-    CartModule, 
-    OrdersModule
+    CartModule,
+    OrdersModule,
+    EmailModule,
+    PaymentsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -2,6 +2,7 @@ import {
   BadRequestException,
   ForbiddenException,
   Injectable,
+  Logger,
   NotFoundException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
@@ -9,6 +10,8 @@ import { Model } from 'mongoose';
 import { Order, OrderDocument } from './schemas/order.schema';
 import { CartService } from '../cart/cart.service';
 import { ProductsService } from '../products/products.service';
+import { UsersService } from '../users/users.service';
+import { EmailService } from '../email/email.service';
 
 interface OrderGroup {
   sellerId: string;
@@ -18,13 +21,17 @@ interface OrderGroup {
 
 @Injectable()
 export class OrdersService {
+  private readonly logger = new Logger(OrdersService.name);
+
   constructor(
     @InjectModel(Order.name) private orderModel: Model<OrderDocument>,
     private readonly cartService: CartService,
     private readonly productsService: ProductsService,
+    private readonly usersService: UsersService,
+    private readonly emailService: EmailService,
   ) {}
 
-  async checkout(buyerId: string) {
+  async checkout(buyerId: string, paymentMethod: 'stripe' | 'cash') {
     const cart = await this.cartService.getCart(buyerId);
     if (cart.items.length === 0) {
       throw new BadRequestException('Le panier est vide');
@@ -32,44 +39,77 @@ export class OrdersService {
 
     // Group cart items by "vendeur + type" — each group becomes its own Order.
     const groups = new Map<string, OrderGroup>();
-    for (const cartItem of cart.items) {
-      const product = await this.productsService.findOne(cartItem.productId);
-      const key = `${product.sellerId}:${product.type}`;
 
-      if (!groups.has(key)) {
-        groups.set(key, {
-          sellerId: product.sellerId.toString(),
-          fulfillmentType: product.type,
-          items: [],
+    // Stock déjà réservé pendant cette tentative de checkout. Si quoi que ce
+    // soit échoue avant la création des commandes, on le rend.
+    const reserved: { productId: string; quantity: number }[] = [];
+    let ordersCreated = false;
+
+    try {
+      for (const cartItem of cart.items) {
+        const product = await this.productsService.findOne(cartItem.productId);
+
+        // Seuls les produits physiques ont un stock à décompter.
+        if (product.type === 'physical') {
+          const ok = await this.productsService.decrementStock(
+            cartItem.productId,
+            cartItem.quantity,
+          );
+          if (!ok) {
+            throw new BadRequestException(
+              `Stock insuffisant pour « ${product.title} »`,
+            );
+          }
+          reserved.push({
+            productId: cartItem.productId,
+            quantity: cartItem.quantity,
+          });
+        }
+
+        const key = `${product.sellerId}:${product.type}`;
+        if (!groups.has(key)) {
+          groups.set(key, {
+            sellerId: product.sellerId.toString(),
+            fulfillmentType: product.type,
+            items: [],
+          });
+        }
+        groups.get(key)!.items.push({
+          productId: cartItem.productId,
+          title: cartItem.title,
+          price: cartItem.price,
+          quantity: cartItem.quantity,
         });
       }
-      groups.get(key)!.items.push({
-        productId: cartItem.productId,
-        title: cartItem.title,
-        price: cartItem.price,
-        quantity: cartItem.quantity,
-      });
+
+      const orders = await Promise.all(
+        Array.from(groups.values()).map((group) =>
+          this.orderModel.create({
+            buyerId,
+            sellerId: group.sellerId,
+            fulfillmentType: group.fulfillmentType,
+            items: group.items,
+            total: group.items.reduce(
+              (sum, i) => sum + i.price * i.quantity,
+              0,
+            ),
+            status: 'pending_payment',
+            paymentMethod,
+          }),
+        ),
+      );
+      ordersCreated = true;
+
+      await this.cartService.clearCart(buyerId);
+      return orders;
+    } catch (err) {
+      // Une fois les commandes créées, la réservation leur appartient :
+      // la rendre ici provoquerait une survente.
+      if (!ordersCreated) {
+        await this.releaseReservations(reserved);
+      }
+      throw err;
     }
-
-    const orders = await Promise.all(
-      Array.from(groups.values()).map((group) =>
-        this.orderModel.create({
-          buyerId,
-          sellerId: group.sellerId,
-          fulfillmentType: group.fulfillmentType,
-          items: group.items,
-          total: group.items.reduce((sum, i) => sum + i.price * i.quantity, 0),
-          status: 'pending_payment',
-        }),
-      ),
-    );
-
-    await this.cartService.clearCart(buyerId);
-    return orders;
-
-    // Le module payments (prochaine étape) appellera une méthode interne
-    // pour faire passer ces commandes de 'pending_payment' à 'processing'
-    // (physique) ou directement 'completed' (digital) après paiement réussi.
   }
 
   findAllForBuyer(buyerId: string) {
@@ -127,8 +167,95 @@ export class OrdersService {
         `Impossible d'annuler une commande au statut "${order.status}"`,
       );
     }
+
     order.status = 'cancelled';
-    return order.save();
+    await order.save();
+
+    // Les deux statuts annulables sont postérieurs au checkout, donc le
+    // stock a bien été décompté : on le remet en rayon.
+    if (order.fulfillmentType === 'physical') {
+      await this.releaseReservations(
+        order.items.map((item) => ({
+          productId: item.productId.toString(),
+          quantity: item.quantity,
+        })),
+      );
+    }
+
+    return order;
+  }
+
+  // Appelé par PaymentsService, que ce soit via le webhook Stripe ou la
+  // confirmation manuelle du vendeur pour un paiement en espèces — c'est
+  // le SEUL endroit où une commande "pending_payment" devient payée.
+  async markAsPaid(orderId: string) {
+    const order = await this.findExisting(orderId);
+
+    // Idempotent : un webhook Stripe peut être livré plusieurs fois.
+    if (order.status !== 'pending_payment') {
+      return order;
+    }
+
+    if (order.fulfillmentType === 'digital') {
+      order.status = 'completed';
+      await order.save();
+      await this.deliverDigitalItems(order);
+    } else {
+      order.status = 'processing';
+      await order.save();
+    }
+
+    return order;
+  }
+
+  async attachPaymentIntent(orderId: string, stripePaymentIntentId: string) {
+    await this.orderModel
+      .updateOne({ _id: orderId }, { stripePaymentIntentId })
+      .exec();
+  }
+
+  private async deliverDigitalItems(order: OrderDocument) {
+    const buyer = await this.usersService.findById(order.buyerId.toString());
+    if (!buyer) return;
+
+    for (const item of order.items) {
+      // Chaque article est isolé : un envoi qui échoue ne doit pas priver
+      // l'acheteur des articles suivants de la même commande.
+      try {
+        const product = await this.productsService.findOne(
+          item.productId.toString(),
+        );
+        if (product.fileKey) {
+          await this.emailService.sendDigitalDelivery(
+            buyer.email,
+            item.title,
+            product.fileKey,
+          );
+        }
+      } catch (err) {
+        this.logger.error(
+          `Livraison numérique échouée — commande ${order._id}, article « ${item.title} »`,
+          err instanceof Error ? err.stack : String(err),
+        );
+      }
+    }
+  }
+
+  private async releaseReservations(
+    reservations: { productId: string; quantity: number }[],
+  ) {
+    for (const { productId, quantity } of reservations) {
+      try {
+        await this.productsService.restoreStock(productId, quantity);
+      } catch (err) {
+        // Le stock d'un produit supprimé entre-temps n'a plus de sens :
+        // on journalise sans faire échouer l'opération appelante.
+        this.logger.error(
+          `Restitution de stock échouée — produit ${productId}, quantité ${quantity}`,
+          err instanceof Error ? err.stack : String(err),
+        );
+      }
+    }
   }
 
   private async findExisting(orderId: string) {

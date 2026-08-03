@@ -12,6 +12,8 @@ import {
 import { ProductsService } from './products.service';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
+import { UpdateProductStatusDto } from './dto/update-product-status.dto';
+import { QueryProductsDto } from './dto/query-products.dto';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../common/guards/roles.guard';
 import { Roles } from '../common/decorators/roles.decorator';
@@ -32,16 +34,22 @@ export class ProductsController {
   }
 
   @Get()
-  findAll(
-    @Query('categoryId') categoryId?: string,
-    @Query('sellerId') sellerId?: string,
-  ) {
-    return this.productsService.findAll({ categoryId, sellerId });
+  findAll(@Query() query: QueryProductsDto) {
+    return this.productsService.findAll(query);
+  }
+
+  // ⚠ Doit rester déclarée AVANT @Get(':id') : Nest résout les routes dans
+  // l'ordre de déclaration, et ':id' capturerait sinon le mot "mine".
+  @Get('mine')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('seller')
+  findMine(@CurrentUser() user: { userId: string }) {
+    return this.productsService.findAllBySeller(user.userId);
   }
 
   @Get(':id')
   findOne(@Param('id') id: string) {
-    return this.productsService.findOne(id);
+    return this.productsService.findOneDetailed(id);
   }
 
   @Patch(':id')
@@ -53,6 +61,17 @@ export class ProductsController {
     @CurrentUser() user: { userId: string; role: string },
   ) {
     return this.productsService.update(id, dto, user.userId);
+  }
+
+  @Patch(':id/status')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('seller')
+  setStatus(
+    @Param('id') id: string,
+    @Body() dto: UpdateProductStatusDto,
+    @CurrentUser() user: { userId: string },
+  ) {
+    return this.productsService.setStatus(id, dto.status, user.userId);
   }
 
   @Delete(':id')

@@ -51,6 +51,14 @@ export class Order {
   @Prop({ required: true, min: 0 })
   total: number;
 
+  @Prop({ required: true, enum: ['stripe', 'cash'] })
+  paymentMethod: 'stripe' | 'cash';
+
+  // Only set when paymentMethod = 'stripe' — used to match the order
+  // when the webhook fires.
+  @Prop()
+  stripePaymentIntentId?: string;
+
   @Prop({
     enum: [
       'pending_payment',

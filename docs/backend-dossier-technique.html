@@ -1,0 +1,1320 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Marketplace — Dossier technique du backend</title>
+<style>
+  @page { size: A4; margin: 16mm 14mm; }
+
+  * { box-sizing: border-box; }
+  body {
+    font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+    font-size: 10pt; line-height: 1.55; color: #1a1d23; margin: 0;
+    -webkit-print-color-adjust: exact; print-color-adjust: exact;
+  }
+
+  h1 { font-size: 22pt; margin: 0 0 4px; letter-spacing: -.5px; }
+  h2 {
+    font-size: 15pt; margin: 26px 0 10px; padding-bottom: 5px;
+    border-bottom: 2px solid #2b6cb0; color: #1a365d;
+    break-after: avoid; page-break-after: avoid;
+  }
+  h3 {
+    font-size: 11.5pt; margin: 18px 0 7px; color: #2b6cb0;
+    break-after: avoid; page-break-after: avoid;
+  }
+  h4 { font-size: 10pt; margin: 13px 0 5px; color: #2d3748; break-after: avoid; }
+  p { margin: 7px 0; }
+  ul, ol { margin: 7px 0; padding-left: 20px; }
+  li { margin: 3px 0; }
+
+  code {
+    font-family: "Cascadia Mono", Consolas, monospace; font-size: 8.8pt;
+    background: #eef1f6; padding: 1px 4px; border-radius: 3px; color: #1a365d;
+  }
+  pre {
+    font-family: "Cascadia Mono", Consolas, monospace; font-size: 8.2pt;
+    background: #f7f9fc; border: 1px solid #dde3ec; border-left: 3px solid #2b6cb0;
+    padding: 9px 11px; border-radius: 4px; line-height: 1.45;
+    white-space: pre; overflow-x: auto; break-inside: avoid;
+  }
+  pre code { background: none; padding: 0; font-size: inherit; }
+
+  table {
+    width: 100%; border-collapse: collapse; margin: 9px 0; font-size: 8.6pt;
+    break-inside: auto;
+  }
+  th {
+    background: #1a365d; color: #fff; text-align: left; padding: 6px 8px;
+    font-weight: 600; font-size: 8.4pt;
+  }
+  td { padding: 5px 8px; border-bottom: 1px solid #e2e8f0; vertical-align: top; }
+  tr { break-inside: avoid; page-break-inside: avoid; }
+  tbody tr:nth-child(even) { background: #f8fafc; }
+
+  .cover {
+    text-align: center; padding-top: 55mm;
+    break-after: page; page-break-after: always;
+  }
+  .cover .sub { font-size: 13pt; color: #4a5568; margin-top: 8px; }
+  .cover .meta { margin-top: 42mm; font-size: 9.5pt; color: #718096; line-height: 1.9; }
+  .cover .rule { width: 60px; height: 3px; background: #2b6cb0; margin: 20px auto; }
+
+  .badge {
+    display: inline-block; padding: 1px 6px; border-radius: 3px;
+    font-size: 7.6pt; font-weight: 700; letter-spacing: .3px; white-space: nowrap;
+  }
+  .b-get    { background: #c6f6d5; color: #22543d; }
+  .b-post   { background: #bee3f8; color: #2a4365; }
+  .b-patch  { background: #feebc8; color: #7b341e; }
+  .b-delete { background: #fed7d7; color: #742a2a; }
+  .b-pub    { background: #e2e8f0; color: #2d3748; }
+  .b-auth   { background: #e9d8fd; color: #44337a; }
+  .b-role   { background: #fefcbf; color: #744210; }
+
+  .box {
+    padding: 10px 13px; border-radius: 4px; margin: 11px 0;
+    break-inside: avoid; page-break-inside: avoid; font-size: 9.3pt;
+  }
+  .warn   { background: #fffaf0; border-left: 4px solid #dd6b20; }
+  .danger { background: #fff5f5; border-left: 4px solid #c53030; }
+  .info   { background: #ebf8ff; border-left: 4px solid #2b6cb0; }
+  .ok     { background: #f0fff4; border-left: 4px solid #38a169; }
+  .box .t { font-weight: 700; display: block; margin-bottom: 3px; }
+
+  .newpage { break-before: page; page-break-before: always; }
+  .toc a { color: #1a365d; text-decoration: none; }
+  .toc ol { padding-left: 22px; }
+  .toc > ol > li { margin: 5px 0; font-weight: 600; }
+  .toc ol ol { padding-left: 18px; }
+  .toc ol ol li { font-weight: 400; font-size: 9.3pt; color: #4a5568; }
+  .small { font-size: 8.6pt; color: #4a5568; }
+  .nowrap { white-space: nowrap; }
+</style>
+</head>
+<body>
+
+<div class="cover">
+  <h1>Marketplace</h1>
+  <div class="rule"></div>
+  <div class="sub">Dossier technique du backend</div>
+  <div class="sub" style="font-size:10.5pt">État des lieux &amp; guide de branchement du frontend</div>
+  <div class="meta">
+    NestJS 11 &nbsp;·&nbsp; MongoDB (Mongoose 9) &nbsp;·&nbsp; Redis 7<br>
+    Stripe &nbsp;·&nbsp; Cloudinary &nbsp;·&nbsp; Resend<br><br>
+    Document généré le 3 août 2026<br>
+    Branche <code>main</code> — 3 commits + travaux en cours
+  </div>
+</div>
+
+<h2>Comment lire ce document</h2>
+<p>
+  Ce dossier a deux lecteurs en tête, et sert deux objectifs distincts :
+</p>
+<ul>
+  <li><strong>Vous.</strong> Comprendre précisément ce que votre backend fait aujourd'hui — les modèles,
+      les règles métier, les transitions de statut — pour ne pas construire un frontend basé sur des
+      suppositions.</li>
+  <li><strong>Un agent IA</strong> à qui vous confierez la construction du frontend. Les sections 5
+      (référence API), 7 (corrections) et 8 (structure recommandée) sont écrites pour être données
+      telles quelles comme contexte.</li>
+</ul>
+<div class="box ok">
+  <span class="t">État du backend</span>
+  L'audit initial avait relevé huit points problématiques — dont trois bloquants pour le frontend
+  (CORS absent, produits impossibles à publier, aucun « mes produits » vendeur).
+  <strong>Tous ont été corrigés et vérifiés par 39 tests de bout en bout</strong> contre la pile
+  réelle. La section 7 documente chaque correction et le raisonnement derrière. Le backend est
+  prêt à recevoir un frontend.
+</div>
+
+<div class="toc">
+<h2>Sommaire</h2>
+<ol>
+  <li><a href="#s1">Vue d'ensemble &amp; pile technique</a></li>
+  <li><a href="#s2">Architecture en modules</a></li>
+  <li><a href="#s3">Modèles de données</a>
+    <ol>
+      <li>User · Category · Product</li>
+      <li>Order &amp; OrderItem</li>
+      <li>Le panier : pourquoi il vit dans Redis</li>
+    </ol>
+  </li>
+  <li><a href="#s4">Authentification &amp; autorisation</a></li>
+  <li><a href="#s5">Référence complète de l'API</a></li>
+  <li><a href="#s6">Les flux métier de bout en bout</a></li>
+  <li><a href="#s7">Corrections appliquées</a></li>
+  <li><a href="#s8">Structure de frontend recommandée</a></li>
+</ol>
+</div>
+
+<!-- ══════════════════ 1 ══════════════════ -->
+<h2 id="s1" class="newpage">1. Vue d'ensemble &amp; pile technique</h2>
+
+<p>
+  Il s'agit d'une marketplace multi-vendeurs. Trois rôles cohabitent — <code>admin</code>,
+  <code>seller</code>, <code>buyer</code> — et le catalogue distingue deux natures de produits :
+  <strong>physiques</strong> (avec stock et expédition) et <strong>numériques</strong>
+  (livrés par email après paiement). Cette distinction traverse tout le système : elle change
+  le schéma du produit, le découpage des commandes, et le cycle de vie d'une commande.
+</p>
+
+<h3>Pile technique</h3>
+<table>
+  <thead><tr><th style="width:22%">Couche</th><th style="width:30%">Technologie</th><th>Rôle dans le projet</th></tr></thead>
+  <tbody>
+    <tr><td>Framework</td><td>NestJS 11</td><td>Architecture modulaire, injection de dépendances, gardes</td></tr>
+    <tr><td>Base principale</td><td>MongoDB via Mongoose 9</td><td>Users, Categories, Products, Orders</td></tr>
+    <tr><td>Base éphémère</td><td>Redis 7 (ioredis)</td><td>Paniers, liste noire des tokens révoqués</td></tr>
+    <tr><td>Authentification</td><td>Passport JWT + bcryptjs</td><td>Token Bearer, expiration 7 jours</td></tr>
+    <tr><td>Validation</td><td>class-validator + class-transformer</td><td><code>ValidationPipe</code> global et strict</td></tr>
+    <tr><td>Paiement</td><td>Stripe (PaymentIntents)</td><td>Carte bancaire + webhook de confirmation</td></tr>
+    <tr><td>Images</td><td>Cloudinary</td><td>Upload en flux, stockage des URLs uniquement</td></tr>
+    <tr><td>Email</td><td>Resend</td><td>Bienvenue à l'inscription, livraison numérique</td></tr>
+    <tr><td>Conteneurisation</td><td>Docker Compose</td><td>redis + backend (:3000) + frontend (:5173)</td></tr>
+  </tbody>
+</table>
+
+<div class="box info">
+  <span class="t">MongoDB n'est pas dans le docker-compose</span>
+  Seul Redis est conteneurisé. La base Mongo est attendue en externe via <code>MONGO_URI</code>
+  — vraisemblablement un cluster MongoDB Atlas, au vu du format de l'exemple dans
+  <code>.env.example</code>.
+</div>
+
+<h3>Configuration d'amorçage (<code>src/main.ts</code>)</h3>
+<pre><code>const app = await NestFactory.create(AppModule, { rawBody: true });
+
+app.useGlobalPipes(new ValidationPipe({
+  whitelist: true,             // supprime tout champ non déclaré dans le DTO
+  forbidNonWhitelisted: true,  // ...et rejette carrément la requête (400)
+  transform: true,             // convertit le JSON brut en instance de classe DTO
+}));
+
+await app.listen(3000);</code></pre>
+
+<p>Deux conséquences directes et importantes pour le frontend :</p>
+<ul>
+  <li><code>rawBody: true</code> conserve le <code>Buffer</code> brut de chaque requête. C'est
+      indispensable à Stripe : <code>constructEvent()</code> vérifie la signature sur les octets
+      exacts reçus, pas sur le JSON reparsé.</li>
+  <li><code>forbidNonWhitelisted: true</code> est <strong>impitoyable</strong>. Si votre formulaire
+      React envoie ne serait-ce qu'un champ en trop — un <code>confirmPassword</code>, un
+      <code>_id</code> renvoyé tel quel après un <code>GET</code> — l'API répond
+      <strong>400 Bad Request</strong>. Nettoyez systématiquement vos payloads avant envoi.</li>
+</ul>
+
+<div class="box ok">
+  <span class="t">CORS est activé</span>
+  <code>app.enableCors({ origin: process.env.FRONTEND_URL || 'http://localhost:5173',
+  credentials: true })</code>. Le <code>||</code> est délibéré : docker-compose définit une
+  variable absente à la chaîne vide, que <code>??</code> ne rattraperait pas — l'origine
+  autorisée serait alors <code>""</code>.
+</div>
+
+<h3>Variables d'environnement</h3>
+<table>
+  <thead><tr><th style="width:34%">Variable</th><th>Usage</th></tr></thead>
+  <tbody>
+    <tr><td><code>MONGO_URI</code></td><td>Connexion Mongoose (chaîne Atlas)</td></tr>
+    <tr><td><code>JWT_SECRET</code></td><td>Signature des tokens — <code>getOrThrow</code>, l'app refuse de démarrer sans</td></tr>
+    <tr><td><code>REDIS_HOST</code> / <code>REDIS_PORT</code></td><td>Défauts <code>localhost</code> / <code>6379</code></td></tr>
+    <tr><td><code>CLOUDINARY_*</code></td><td><code>CLOUD_NAME</code>, <code>API_KEY</code>, <code>API_SECRET</code></td></tr>
+    <tr><td><code>STRIPE_SECRET_KEY</code></td><td>Clé serveur Stripe</td></tr>
+    <tr><td><code>STRIPE_WEBHOOK_SECRET</code></td><td>Vérification de signature du webhook</td></tr>
+    <tr><td><code>STRIPE_CURRENCY</code></td><td>Devise, défaut <code>usd</code></td></tr>
+    <tr><td><code>RESEND_API_KEY</code> / <code>EMAIL_FROM</code></td><td>Envoi des emails transactionnels</td></tr>
+  </tbody>
+</table>
+<p class="small">
+  À noter : aucune variable <code>VITE_*</code> ni <code>FRONTEND_URL</code> n'existe encore.
+  Il faudra en ajouter (au minimum l'URL publique de l'API et la clé publique Stripe) au moment
+  de câbler le frontend.
+</p>
+
+<!-- ══════════════════ 2 ══════════════════ -->
+<h2 id="s2" class="newpage">2. Architecture en modules</h2>
+
+<p>
+  Onze modules, dont deux marqués <code>@Global()</code> — <code>RedisModule</code> et
+  <code>EmailModule</code>. Être global signifie que n'importe quel module peut injecter
+  <code>RedisService</code> ou <code>EmailService</code> sans réimporter le module parent
+  à chaque fois. C'est justifié ici : ces deux services sont transverses et utilisés par
+  des fonctionnalités sans lien entre elles.
+</p>
+
+<pre><code>AppModule
+├── ConfigModule (global)         variables d'environnement
+├── MongooseModule.forRootAsync   connexion Mongo différée jusqu'à ConfigService
+│
+├── RedisModule      @Global      panier + liste noire des tokens
+├── EmailModule      @Global      Resend : bienvenue, livraison numérique
+│
+├── UsersModule                   modèle User, aucun contrôleur exposé
+├── AuthModule       ← Users      register / login / me / logout
+├── CategoriesModule              arbre de catégories (admin)
+├── ProductsModule                catalogue (seller)
+├── UploadModule                  Cloudinary
+├── CartModule       ← Products, Redis
+├── OrdersModule     ← Cart, Products, Users, Email
+└── PaymentsModule   ← Orders     Stripe + espèces</code></pre>
+
+<h3>Le sens des dépendances</h3>
+<p>
+  La chaîne se lit de gauche à droite et ne remonte jamais :
+  <code>Payments → Orders → Cart → Products</code>. Aucune dépendance circulaire, ce qui est
+  sain — <code>ProductsService</code> ignore totalement l'existence des commandes.
+</p>
+<p>
+  Deux points de conception qui méritent d'être soulignés, parce qu'ils sont corrects et
+  volontaires :
+</p>
+<ul>
+  <li><strong><code>UsersModule</code> n'expose aucun contrôleur.</strong> Il n'existe donc
+      aucune route <code>/users</code>. C'est un module de service pur, consommé par
+      <code>Auth</code> et <code>Orders</code>. Les informations de l'utilisateur connecté
+      passent exclusivement par <code>GET /auth/me</code>.</li>
+  <li><strong><code>markAsPaid()</code> vit dans <code>OrdersService</code>, pas dans
+      <code>PaymentsService</code>.</strong> C'est l'unique porte d'entrée par laquelle une
+      commande devient payée, que le déclencheur soit le webhook Stripe ou la confirmation
+      manuelle d'un paiement en espèces. Une seule règle métier, un seul endroit — les deux
+      modes de paiement ne peuvent pas diverger.</li>
+</ul>
+
+<h3>Arborescence des sources</h3>
+<pre><code>backend/src/
+├── main.ts, app.module.ts, app.controller.ts, app.service.ts
+├── common/
+│   ├── decorators/  current-user.decorator.ts, roles.decorator.ts
+│   └── guards/      jwt-auth.guard.ts, roles.guard.ts
+├── auth/            controller, service, module
+│   ├── dto/         register.dto.ts, login.dto.ts
+│   └── strategies/  jwt.strategy.ts
+├── users/           service, module + schemas/user.schema.ts
+├── categories/      controller, service, module + dto/, schemas/
+├── products/        controller, service, module + dto/, schemas/
+├── cart/            controller, service, module + dto/
+├── orders/          controller, service, module + dto/, schemas/
+├── payments/        controller, service, module
+├── upload/          controller, service, module
+├── email/           service, module
+└── redis/           service, module, constants</code></pre>
+
+<p class="small">
+  Convention respectée partout : un dossier par domaine, contenant
+  <code>*.controller.ts</code> / <code>*.service.ts</code> / <code>*.module.ts</code>, plus
+  <code>dto/</code> pour les entrées validées et <code>schemas/</code> pour les modèles Mongoose.
+  <code>cart/</code> n'a pas de <code>schemas/</code> — normal, son état est dans Redis.
+</p>
+
+<!-- ══════════════════ 3 ══════════════════ -->
+<h2 id="s3" class="newpage">3. Modèles de données</h2>
+
+<h3>3.1 User</h3>
+<p>Collection <code>users</code>, horodatage automatique (<code>timestamps: true</code>).</p>
+<table>
+  <thead><tr><th style="width:22%">Champ</th><th style="width:24%">Type</th><th>Contraintes &amp; remarques</th></tr></thead>
+  <tbody>
+    <tr><td><code>email</code></td><td>string</td><td>requis, unique, minuscules, trim</td></tr>
+    <tr><td><code>passwordHash</code></td><td>string</td><td>requis — hash bcrypt (coût 10). Le mot de passe brut n'est jamais stocké</td></tr>
+    <tr><td><code>name</code></td><td>string?</td><td>optionnel, trim</td></tr>
+    <tr><td><code>role</code></td><td>enum</td><td><code>admin</code> | <code>seller</code> | <code>buyer</code> — défaut <code>buyer</code></td></tr>
+  </tbody>
+</table>
+<div class="box warn">
+  <span class="t">Le rôle est choisi librement à l'inscription</span>
+  <code>RegisterDto</code> accepte <code>role: 'buyer' | 'seller'</code>. N'importe qui peut donc
+  devenir vendeur en cochant une case. <code>admin</code> est exclu du DTO — un compte
+  administrateur doit être créé manuellement en base. Pour un MVP c'est acceptable, mais
+  gardez-le en tête.
+</div>
+
+<h3>3.2 Category</h3>
+<p>Arbre de catégories à profondeur libre, via un simple <code>parentId</code> auto-référencé.</p>
+<table>
+  <thead><tr><th style="width:22%">Champ</th><th style="width:24%">Type</th><th>Contraintes &amp; remarques</th></tr></thead>
+  <tbody>
+    <tr><td><code>name</code></td><td>string</td><td>requis, trim</td></tr>
+    <tr><td><code>slug</code></td><td>string</td><td>requis, unique — <strong>généré automatiquement</strong> depuis <code>name</code></td></tr>
+    <tr><td><code>parentId</code></td><td>ObjectId | null</td><td><code>null</code> = catégorie racine</td></tr>
+  </tbody>
+</table>
+<p>
+  Le <code>slugify()</code> maison passe en minuscules, retire les accents par normalisation
+  <code>NFD</code> (é → e), et remplace tout caractère hors <code>a-z0-9</code> par un tiret.
+  « Électroménager &amp; Cuisine » devient <code>electromenager-cuisine</code>.
+</p>
+<div class="box warn">
+  <span class="t">Le slug est généré mais jamais utilisé pour la lecture</span>
+  Toutes les routes fonctionnent par <code>ObjectId</code> : <code>GET /categories/:id</code>.
+  Il n'existe aucun <code>GET /categories/slug/:slug</code>. Si vous voulez des URLs propres
+  côté frontend (<code>/c/electromenager</code>), il faudra soit ajouter cette route au backend,
+  soit charger toutes les catégories au démarrage et résoudre le slug → id côté client.
+  Vu leur faible nombre, la seconde option est tout à fait viable.
+</div>
+
+<h3>3.3 Product</h3>
+<p>
+  C'est le schéma le plus riche, et le plus délicat : il fusionne deux natures de produits
+  dans une seule collection. Les champs sont conditionnels selon <code>type</code>.
+</p>
+<table>
+  <thead><tr><th style="width:23%">Champ</th><th style="width:22%">Type</th><th>Contraintes &amp; remarques</th></tr></thead>
+  <tbody>
+    <tr><td><code>sellerId</code></td><td>ObjectId → User</td><td>requis, indexé. Injecté depuis le JWT, jamais depuis le body</td></tr>
+    <tr><td><code>categoryId</code></td><td>ObjectId → Category</td><td>requis, indexé</td></tr>
+    <tr><td><code>title</code></td><td>string</td><td>requis, trim</td></tr>
+    <tr><td><code>description</code></td><td>string?</td><td>optionnel</td></tr>
+    <tr><td><code>price</code></td><td>number</td><td>requis, ≥ 0</td></tr>
+    <tr><td><code>promoPrice</code></td><td>number?</td><td>optionnel, ≥ 0 — <strong>c'est lui qui est facturé</strong> quand il est défini et inférieur à <code>price</code></td></tr>
+    <tr><td><code>images</code></td><td>string[]</td><td>URLs Cloudinary, défaut <code>[]</code> — jamais de binaire en base</td></tr>
+    <tr><td><code>status</code></td><td>enum</td><td><code>draft</code> | <code>active</code> | <code>suspended</code> — <strong>défaut <code>draft</code></strong></td></tr>
+    <tr><td><code>type</code></td><td>enum</td><td>requis — <code>physical</code> | <code>digital</code></td></tr>
+    <tr><td colspan="3" style="background:#edf2f7;font-weight:600;padding-top:7px">Réservé aux produits physiques</td></tr>
+    <tr><td><code>stock</code></td><td>number?</td><td>≥ 0 — décrémenté atomiquement au checkout, restitué à l'annulation</td></tr>
+    <tr><td><code>weightGrams</code></td><td>number?</td><td>≥ 0</td></tr>
+    <tr><td><code>shippingOptions</code></td><td>{label, cost}[]?</td><td>Renseignable via le DTO (validation imbriquée). Facultatif même en physique</td></tr>
+    <tr><td colspan="3" style="background:#edf2f7;font-weight:600;padding-top:7px">Réservé aux produits numériques</td></tr>
+    <tr><td><code>fileKey</code></td><td>string?</td><td>Référence de stockage — ne doit jamais être une URL publique</td></tr>
+    <tr><td><code>downloadLimit</code></td><td>number?</td><td>≥ 1 — stocké, mais aucun compteur ne l'applique</td></tr>
+  </tbody>
+</table>
+
+<h4>La validation conditionnelle</h4>
+<p>
+  <code>CreateProductDto</code> utilise <code>@ValidateIf()</code> pour n'exiger les champs
+  que lorsqu'ils sont pertinents :
+</p>
+<pre><code>@ValidateIf((dto) => dto.type === 'physical')
+@IsInt() @Min(0)
+stock?: number;
+
+@ValidateIf((dto) => dto.type === 'digital')
+@IsString() @IsNotEmpty()
+fileKey?: string;</code></pre>
+<p>
+  Le frontend doit refléter exactement cette logique : un formulaire produit où le choix
+  physique / numérique bascule deux jeux de champs distincts. Envoyer <code>stock</code> sur
+  un produit numérique déclenchera une erreur 400, puisque <code>forbidNonWhitelisted</code>
+  est actif.
+</p>
+
+<h3 class="newpage">3.4 Order &amp; OrderItem</h3>
+<p>
+  Une commande représente <strong>un vendeur et une seule nature de produit</strong>. C'est la
+  décision structurante de tout le système de commandes : un panier contenant des articles de
+  trois vendeurs différents produit trois commandes distinctes.
+</p>
+
+<h4>OrderItem — un instantané figé</h4>
+<p>
+  Sous-document déclaré avec <code>@Schema({ _id: false })</code> : les lignes ne sont jamais
+  éditées ni recherchées individuellement, elles n'ont donc pas besoin d'identité propre.
+</p>
+<table>
+  <thead><tr><th style="width:24%">Champ</th><th style="width:24%">Type</th><th>Remarques</th></tr></thead>
+  <tbody>
+    <tr><td><code>productId</code></td><td>ObjectId → Product</td><td>requis</td></tr>
+    <tr><td><code>title</code></td><td>string</td><td>Copie du titre <em>au moment de l'achat</em></td></tr>
+    <tr><td><code>price</code></td><td>number</td><td>Copie du prix <em>au moment de l'achat</em></td></tr>
+    <tr><td><code>quantity</code></td><td>number</td><td>≥ 1</td></tr>
+  </tbody>
+</table>
+<div class="box ok">
+  <span class="t">Pourquoi dupliquer titre et prix plutôt que faire un populate ?</span>
+  Parce qu'une commande est un document historique. Si le vendeur baisse son prix la semaine
+  suivante, une commande passée ne doit pas voir son montant réécrit rétroactivement. Le
+  <code>total</code> stocké resterait alors incohérent avec la somme de ses lignes. C'est un
+  bon réflexe de conception, et il est appliqué correctement ici.
+</div>
+
+<h4>Order</h4>
+<table>
+  <thead><tr><th style="width:26%">Champ</th><th style="width:24%">Type</th><th>Remarques</th></tr></thead>
+  <tbody>
+    <tr><td><code>buyerId</code></td><td>ObjectId → User</td><td>requis, indexé</td></tr>
+    <tr><td><code>sellerId</code></td><td>ObjectId → User</td><td>requis, indexé</td></tr>
+    <tr><td><code>fulfillmentType</code></td><td>enum</td><td><code>physical</code> | <code>digital</code> — une seule valeur, jamais mixte</td></tr>
+    <tr><td><code>items</code></td><td>OrderItem[]</td><td>requis</td></tr>
+    <tr><td><code>total</code></td><td>number</td><td>Σ (price × quantity), calculé au checkout</td></tr>
+    <tr><td><code>paymentMethod</code></td><td>enum</td><td><code>stripe</code> | <code>cash</code></td></tr>
+    <tr><td><code>stripePaymentIntentId</code></td><td>string?</td><td>Renseigné à la création de l'intent</td></tr>
+    <tr><td><code>status</code></td><td>enum</td><td>6 valeurs — défaut <code>pending_payment</code></td></tr>
+  </tbody>
+</table>
+
+<h3>3.5 Le panier : pourquoi il vit dans Redis</h3>
+<p>
+  Le panier n'a <strong>aucune collection MongoDB</strong>. Il est stocké sous la clé
+  <code>cart:&lt;userId&gt;</code> avec une durée de vie de <strong>7 jours</strong>, réinitialisée
+  à chaque écriture. La valeur stockée est volontairement minimale :
+</p>
+<pre><code>// clé : cart:66f1a2b3c4d5e6f7a8b9c0d1
+{ "66a1...": 2, "66b2...": 1 }   // productId → quantité</code></pre>
+<p>
+  À la lecture, <code>getCart()</code> enrichit cette carte brute en allant chercher
+  <code>title</code>, <code>price</code> et <code>images</code> en base pour chaque produit, puis
+  calcule les sous-totaux. Le panier renvoie donc toujours des <strong>prix à jour</strong>,
+  jamais un instantané périmé — exactement l'inverse de <code>OrderItem</code>, et c'est
+  volontaire dans les deux cas.
+</p>
+<p>
+  Autre détail soigné : si un produit a été supprimé entre-temps, <code>findOne()</code> lève
+  une <code>NotFoundException</code>, qui est <strong>rattrapée</strong>. L'article est retiré du
+  panier, le panier est resauvegardé, et la requête aboutit normalement au lieu de planter.
+</p>
+<pre><code>try {
+  const product = await this.productsService.findOne(productId);
+  items.push({ /* ... */ });
+} catch {
+  delete cart[productId];   // produit disparu → on l'oublie silencieusement
+  cartChanged = true;
+}</code></pre>
+
+<div class="box info">
+  <span class="t">Conséquence directe pour le frontend</span>
+  Le panier est <strong>lié au compte utilisateur</strong>, pas au navigateur. Un visiteur non
+  connecté ne peut rien mettre au panier : toutes les routes <code>/cart</code> exigent un JWT.
+  Deux options s'offrent à vous — soit exiger la connexion avant tout ajout, soit maintenir un
+  panier local (<code>localStorage</code>) fusionné avec le panier serveur au moment du login.
+  La seconde offre une bien meilleure expérience, mais c'est du travail purement frontend :
+  le backend ne vous aidera pas.
+</div>
+
+<!-- ══════════════════ 4 ══════════════════ -->
+<h2 id="s4" class="newpage">4. Authentification &amp; autorisation</h2>
+
+<h3>Le parcours d'un token</h3>
+<ol>
+  <li><code>POST /auth/register</code> ou <code>/auth/login</code> renvoie
+      <code>{ access_token }</code>.</li>
+  <li>La charge utile signée est minimale : <code>{ sub: userId, role }</code>,
+      valable <strong>7 jours</strong>.</li>
+  <li>Le frontend le renvoie ensuite sur chaque appel protégé :
+      <code>Authorization: Bearer &lt;token&gt;</code>.</li>
+  <li><code>JwtStrategy.validate()</code> vérifie la signature, l'expiration,
+      <strong>puis la liste noire Redis</strong>, et pose
+      <code>{ userId, role }</code> sur <code>req.user</code>.</li>
+  <li>Les contrôleurs y accèdent via le décorateur <code>@CurrentUser()</code>.</li>
+</ol>
+
+<div class="box warn">
+  <span class="t">Aucun refresh token</span>
+  Un seul token, 7 jours, non renouvelable. Passé ce délai, l'utilisateur est déconnecté sans
+  préavis. Le frontend doit intercepter les <strong>401</strong> globalement, purger l'état
+  d'authentification et rediriger vers la page de connexion.
+</div>
+
+<h3>Les deux gardes</h3>
+<table>
+  <thead><tr><th style="width:26%">Garde</th><th>Comportement</th></tr></thead>
+  <tbody>
+    <tr>
+      <td><code>JwtAuthGuard</code></td>
+      <td>Étend <code>AuthGuard('jwt')</code> de Passport. Rejette en <strong>401</strong> si le
+          token est absent, mal signé, expiré ou révoqué.</td>
+    </tr>
+    <tr>
+      <td><code>RolesGuard</code></td>
+      <td>Lit les métadonnées posées par <code>@Roles(...)</code> via le <code>Reflector</code>.
+          <strong>Sans</strong> <code>@Roles()</code> sur la route, il laisse passer tout
+          utilisateur authentifié. Rejette en <strong>403</strong> sinon.</td>
+    </tr>
+  </tbody>
+</table>
+<div class="box warn">
+  <span class="t">L'ordre de déclaration compte</span>
+  <code>@UseGuards(JwtAuthGuard, RolesGuard)</code> — dans cet ordre précis. <code>RolesGuard</code>
+  lit <code>request.user.role</code>, qui n'existe que si <code>JwtAuthGuard</code> s'est exécuté
+  avant. Inversés, <code>user</code> serait <code>undefined</code> et l'accès serait refusé
+  systématiquement.
+</div>
+
+<h3>La révocation à la déconnexion</h3>
+<p>
+  Un JWT est par nature sans état : le serveur ne peut pas « l'oublier ». Une déconnexion qui se
+  contenterait de supprimer le token côté navigateur laisserait un token parfaitement valide
+  pendant 7 jours à quiconque en aurait fait une copie. La parade retenue est une liste noire
+  dans Redis :
+</p>
+<pre><code>async logout(token: string) {
+  const decoded = this.jwtService.decode(token) as { exp?: number } | null;
+  const ttlSeconds = decoded?.exp ? decoded.exp - Math.floor(Date.now() / 1000) : 0;
+
+  if (ttlSeconds > 0) {
+    await this.redisService.set(`auth:blacklist:${token}`, '1', ttlSeconds);
+  }
+  return { message: 'Déconnecté avec succès' };
+}</code></pre>
+<p>
+  La finesse est dans le TTL : la clé Redis expire <strong>exactement</strong> quand le token
+  lui-même expire. La liste noire ne peut donc pas grossir indéfiniment — elle se purge seule.
+  Côté vérification, <code>JwtStrategy</code> consulte cette liste à chaque requête :
+</p>
+<pre><code>async validate(req: Request, payload: JwtPayload) {
+  const token = ExtractJwt.fromAuthHeaderAsBearerToken()(req);
+  const blacklisted = token && (await this.redisService.get(`auth:blacklist:${token}`));
+  if (blacklisted) {
+    throw new UnauthorizedException('Session expirée, veuillez vous reconnecter');
+  }
+  return { userId: payload.sub, role: payload.role };
+}</code></pre>
+<p class="small">
+  C'est <code>passReqToCallback: true</code> dans le constructeur de la stratégie qui donne
+  accès à la requête brute, et donc au token d'origine — la charge décodée seule ne suffirait pas.
+</p>
+
+<h3>Les emails transactionnels</h3>
+<p>Deux messages sont envoyés via Resend, tous deux en français :</p>
+<table>
+  <thead><tr><th style="width:32%">Méthode</th><th style="width:26%">Déclencheur</th><th>Contenu</th></tr></thead>
+  <tbody>
+    <tr>
+      <td><code>sendWelcomeEmail()</code></td>
+      <td><code>AuthService.register()</code></td>
+      <td>Message de bienvenue, personnalisé avec le prénom si fourni</td>
+    </tr>
+    <tr>
+      <td><code>sendDigitalDelivery()</code></td>
+      <td><code>OrdersService.markAsPaid()</code>, uniquement si <code>fulfillmentType === 'digital'</code></td>
+      <td>Un email <strong>par article</strong>, contenant le lien de téléchargement</td>
+    </tr>
+  </tbody>
+</table>
+<div class="box warn">
+  <span class="t">L'envoi d'email n'est pas protégé contre l'échec</span>
+  <code>register()</code> fait <code>await this.emailService.sendWelcomeEmail(...)</code> sans
+  <code>try/catch</code>. Si Resend est indisponible ou la clé API invalide, <strong>l'inscription
+  entière échoue</strong> alors que le compte vient d'être créé en base. L'utilisateur voit une
+  erreur mais son compte existe — il ne pourra pas se réinscrire (409 Conflict). Un
+  <code>try/catch</code> avec journalisation serait préférable : l'email de bienvenue n'est pas
+  critique au point de bloquer une inscription.
+</div>
+
+<!-- ══════════════════ 5 ══════════════════ -->
+<h2 id="s5" class="newpage">5. Référence complète de l'API</h2>
+<p class="small">
+  Base : <code>http://localhost:3000</code> — <strong>aucun préfixe global</strong>. Les routes
+  sont exposées à la racine (<code>/auth/login</code>, et non <code>/api/auth/login</code>).
+  Légende : <span class="badge b-pub">PUBLIC</span> aucune authentification ·
+  <span class="badge b-auth">JWT</span> token requis ·
+  <span class="badge b-role">RÔLE</span> rôle spécifique exigé.
+</p>
+
+<h3>5.1 Authentification — <code>/auth</code></h3>
+<table>
+  <thead><tr><th style="width:8%">Méthode</th><th style="width:19%">Route</th><th style="width:15%">Accès</th><th>Corps &amp; réponse</th></tr></thead>
+  <tbody>
+    <tr>
+      <td><span class="badge b-post">POST</span></td><td><code>/auth/register</code></td>
+      <td><span class="badge b-pub">PUBLIC</span></td>
+      <td><code>{ email, password (≥8), name?, role? }</code> → <code>{ access_token }</code>.
+          <strong>409</strong> si l'email existe déjà. Envoie l'email de bienvenue.</td>
+    </tr>
+    <tr>
+      <td><span class="badge b-post">POST</span></td><td><code>/auth/login</code></td>
+      <td><span class="badge b-pub">PUBLIC</span></td>
+      <td><code>{ email, password }</code> → <code>{ access_token }</code>.
+          <strong>401</strong> si identifiants invalides.</td>
+    </tr>
+    <tr>
+      <td><span class="badge b-get">GET</span></td><td><code>/auth/me</code></td>
+      <td><span class="badge b-auth">JWT</span></td>
+      <td>→ <code>{ id, email, name, role }</code>. Jamais le <code>passwordHash</code>.</td>
+    </tr>
+    <tr>
+      <td><span class="badge b-post">POST</span></td><td><code>/auth/logout</code></td>
+      <td><span class="badge b-auth">JWT</span></td>
+      <td>Aucun corps — le token est lu dans l'en-tête <code>Authorization</code>.
+          → <code>{ message }</code>. Révoque le token jusqu'à son expiration.</td>
+    </tr>
+  </tbody>
+</table>
+
+<h3>5.2 Catégories — <code>/categories</code></h3>
+<table>
+  <thead><tr><th style="width:8%">Méthode</th><th style="width:19%">Route</th><th style="width:15%">Accès</th><th>Corps &amp; réponse</th></tr></thead>
+  <tbody>
+    <tr><td><span class="badge b-post">POST</span></td><td><code>/categories</code></td>
+        <td><span class="badge b-auth">JWT</span> <span class="badge b-role">admin</span></td>
+        <td><code>{ name, parentId? }</code> — le <code>slug</code> est généré côté serveur</td></tr>
+    <tr><td><span class="badge b-get">GET</span></td><td><code>/categories</code></td>
+        <td><span class="badge b-pub">PUBLIC</span></td>
+        <td>Liste <strong>à plat</strong> — l'arbre est à reconstruire côté client via <code>parentId</code></td></tr>
+    <tr><td><span class="badge b-get">GET</span></td><td><code>/categories/:id</code></td>
+        <td><span class="badge b-pub">PUBLIC</span></td><td>Par ObjectId uniquement, pas par slug</td></tr>
+    <tr><td><span class="badge b-patch">PATCH</span></td><td><code>/categories/:id</code></td>
+        <td><span class="badge b-auth">JWT</span> <span class="badge b-role">admin</span></td>
+        <td>Renommer regénère le slug. Refuse qu'une catégorie soit son propre parent</td></tr>
+    <tr><td><span class="badge b-delete">DELETE</span></td><td><code>/categories/:id</code></td>
+        <td><span class="badge b-auth">JWT</span> <span class="badge b-role">admin</span></td>
+        <td><strong>400</strong> si la catégorie contient des sous-catégories ou des produits.
+            Le message précise le nombre concerné</td></tr>
+  </tbody>
+</table>
+
+<h3>5.3 Produits — <code>/products</code></h3>
+<table>
+  <thead><tr><th style="width:8%">Méthode</th><th style="width:19%">Route</th><th style="width:15%">Accès</th><th>Corps &amp; réponse</th></tr></thead>
+  <tbody>
+    <tr><td><span class="badge b-post">POST</span></td><td><code>/products</code></td>
+        <td><span class="badge b-auth">JWT</span> <span class="badge b-role">seller</span></td>
+        <td><code>CreateProductDto</code>. Le <code>sellerId</code> vient du token.
+            Créé en <code>status: 'draft'</code></td></tr>
+    <tr><td><span class="badge b-get">GET</span></td><td><code>/products</code></td>
+        <td><span class="badge b-pub">PUBLIC</span></td>
+        <td>Catalogue publié uniquement (<code>status: 'active'</code>).
+            Paramètres : <code>categoryId</code>, <code>sellerId</code>, <code>q</code>,
+            <code>page</code> (déf. 1), <code>limit</code> (déf. 20, max 100).
+            → <code>{ items, total, page, limit, totalPages }</code>.
+            <code>categoryId</code> et <code>sellerId</code> sont <strong>peuplés</strong></td></tr>
+    <tr><td><span class="badge b-get">GET</span></td><td><code>/products/mine</code></td>
+        <td><span class="badge b-auth">JWT</span> <span class="badge b-role">seller</span></td>
+        <td>Mes produits, <strong>tous statuts confondus</strong> — brouillons inclus.
+            Tableau simple, non paginé</td></tr>
+    <tr><td><span class="badge b-get">GET</span></td><td><code>/products/:id</code></td>
+        <td><span class="badge b-pub">PUBLIC</span></td>
+        <td>Fiche produit enrichie (catégorie + vendeur peuplés).
+            Renvoie le produit <strong>quel que soit son statut</strong></td></tr>
+    <tr><td><span class="badge b-patch">PATCH</span></td><td><code>/products/:id</code></td>
+        <td><span class="badge b-auth">JWT</span> <span class="badge b-role">seller</span></td>
+        <td>Filtré sur <code>{ _id, sellerId }</code> : un vendeur ne peut modifier que ses produits</td></tr>
+    <tr><td><span class="badge b-patch">PATCH</span></td><td><code>/products/:id/status</code></td>
+        <td><span class="badge b-auth">JWT</span> <span class="badge b-role">seller</span></td>
+        <td><code>{ status: 'draft' | 'active' }</code> — publier / dépublier.
+            <code>'suspended'</code> est refusé (400) : c'est un statut de modération</td></tr>
+    <tr><td><span class="badge b-delete">DELETE</span></td><td><code>/products/:id</code></td>
+        <td><span class="badge b-auth">JWT</span> <span class="badge b-role">seller</span></td>
+        <td>Même filtre de propriété. Réponse vide</td></tr>
+  </tbody>
+</table>
+<p class="small">
+  Sur <code>PATCH</code> et <code>DELETE</code>, un produit appartenant à un autre vendeur renvoie
+  <strong>404</strong> et non 403 — le filtre porte sur <code>sellerId</code>, donc rien n'est
+  trouvé. C'est défendable (on ne révèle pas l'existence de la ressource), mais le message d'erreur,
+  lui, précise « ou vous n'en êtes pas le vendeur », ce qui annule ce bénéfice.
+</p>
+
+<h3>5.4 Upload — <code>/upload</code></h3>
+<table>
+  <thead><tr><th style="width:8%">Méthode</th><th style="width:19%">Route</th><th style="width:15%">Accès</th><th>Corps &amp; réponse</th></tr></thead>
+  <tbody>
+    <tr><td><span class="badge b-post">POST</span></td><td><code>/upload/image</code></td>
+        <td><span class="badge b-auth">JWT</span> <span class="badge b-role">seller</span></td>
+        <td><code>multipart/form-data</code>, champ nommé <strong><code>image</code></strong>
+            → <code>{ url }</code>. Dossier Cloudinary <code>marketplace/products</code></td></tr>
+  </tbody>
+</table>
+<div class="box ok">
+  <span class="t">Route protégée</span>
+  Réservée aux vendeurs authentifiés, plafonnée à <strong>5 Mo</strong>, et limitée aux types
+  <code>image/jpeg</code>, <code>image/png</code> et <code>image/webp</code>. Un format refusé
+  renvoie un <strong>400</strong> explicite plutôt qu'un silencieux « aucun fichier reçu ».
+</div>
+
+<h3 class="newpage">5.5 Panier — <code>/cart</code></h3>
+<p class="small"><code>@UseGuards(JwtAuthGuard)</code> est posé sur la classe entière : toutes les routes exigent un token.</p>
+<table>
+  <thead><tr><th style="width:8%">Méthode</th><th style="width:22%">Route</th><th>Corps &amp; réponse</th></tr></thead>
+  <tbody>
+    <tr><td><span class="badge b-get">GET</span></td><td><code>/cart</code></td>
+        <td>→ <code>{ items: [{ productId, quantity, title, price, originalPrice?, images, subtotal }], total }</code>.
+            <code>price</code> est le montant <strong>réellement facturé</strong> ;
+            <code>originalPrice</code> n'apparaît qu'en cas de promotion, pour le prix barré</td></tr>
+    <tr><td><span class="badge b-post">POST</span></td><td><code>/cart/items</code></td>
+        <td><code>{ productId, quantity ≥ 1 }</code>. Quantité <strong>ajoutée</strong> à
+            l'existante. <strong>404</strong> si le produit n'existe pas. Renvoie le panier complet</td></tr>
+    <tr><td><span class="badge b-patch">PATCH</span></td><td><code>/cart/items/:productId</code></td>
+        <td><code>{ quantity ≥ 0 }</code>. Quantité <strong>remplacée</strong>.
+            <code>0</code> retire l'article. Renvoie le panier complet</td></tr>
+    <tr><td><span class="badge b-delete">DELETE</span></td><td><code>/cart/items/:productId</code></td>
+        <td>Retire l'article. Renvoie le panier complet</td></tr>
+    <tr><td><span class="badge b-delete">DELETE</span></td><td><code>/cart</code></td>
+        <td>Vide le panier → <code>{ items: [], total: 0 }</code></td></tr>
+  </tbody>
+</table>
+<div class="box ok">
+  <span class="t">Bonne nouvelle pour la gestion d'état</span>
+  <strong>Les cinq routes</strong> renvoient le panier complet recalculé. Vous n'avez donc jamais
+  besoin de refaire un <code>GET /cart</code> après une mutation : la réponse <em>est</em> l'état
+  à jour. Avec RTK Query, cela se traduit par une mise à jour directe du cache
+  (<code>updateQueryData</code>) plutôt qu'une invalidation suivie d'un rechargement.
+</div>
+
+<h3>5.6 Commandes — <code>/orders</code></h3>
+<p class="small">JWT exigé sur toute la ressource.</p>
+<table>
+  <thead><tr><th style="width:8%">Méthode</th><th style="width:24%">Route</th><th style="width:13%">Rôle</th><th>Comportement</th></tr></thead>
+  <tbody>
+    <tr><td><span class="badge b-post">POST</span></td><td><code>/orders/checkout</code></td><td>—</td>
+        <td><code>{ paymentMethod: 'stripe' | 'cash' }</code> → <strong>un tableau</strong> de commandes.
+            <strong>400</strong> si le panier est vide ou si le stock est insuffisant
+            (message « Stock insuffisant pour « … » »). Réserve le stock puis vide le panier</td></tr>
+    <tr><td><span class="badge b-get">GET</span></td><td><code>/orders/my-purchases</code></td><td>—</td>
+        <td>Mes achats, triés du plus récent au plus ancien</td></tr>
+    <tr><td><span class="badge b-get">GET</span></td><td><code>/orders/my-sales</code></td>
+        <td><span class="badge b-role">seller</span></td><td>Mes ventes, même tri</td></tr>
+    <tr><td><span class="badge b-get">GET</span></td><td><code>/orders/:id</code></td><td>—</td>
+        <td>Accessible à l'acheteur <em>ou</em> au vendeur. <strong>403</strong> pour un tiers</td></tr>
+    <tr><td><span class="badge b-patch">PATCH</span></td><td><code>/orders/:id/ship</code></td>
+        <td><span class="badge b-role">seller</span></td>
+        <td><code>processing</code> → <code>shipped</code>. Produits physiques uniquement</td></tr>
+    <tr><td><span class="badge b-patch">PATCH</span></td><td><code>/orders/:id/confirm-delivery</code></td><td>—</td>
+        <td><strong>Acheteur seul</strong> : <code>shipped</code> → <code>delivered</code></td></tr>
+    <tr><td><span class="badge b-patch">PATCH</span></td><td><code>/orders/:id/cancel</code></td><td>—</td>
+        <td>Acheteur ou vendeur. Uniquement depuis <code>pending_payment</code> ou <code>processing</code></td></tr>
+  </tbody>
+</table>
+
+<h3>5.7 Paiements — <code>/payments</code></h3>
+<table>
+  <thead><tr><th style="width:8%">Méthode</th><th style="width:27%">Route</th><th style="width:15%">Accès</th><th>Comportement</th></tr></thead>
+  <tbody>
+    <tr><td><span class="badge b-post">POST</span></td><td><code>/payments/:orderId/create-intent</code></td>
+        <td><span class="badge b-auth">JWT</span></td>
+        <td>Acheteur uniquement. → <code>{ clientSecret }</code> à passer à Stripe.js.
+            Exige <code>paymentMethod: 'stripe'</code> et <code>status: 'pending_payment'</code></td></tr>
+    <tr><td><span class="badge b-patch">PATCH</span></td><td><code>/payments/:orderId/confirm-cash</code></td>
+        <td><span class="badge b-auth">JWT</span> <span class="badge b-role">seller</span></td>
+        <td>Le vendeur atteste avoir reçu les espèces → déclenche <code>markAsPaid()</code></td></tr>
+    <tr><td><span class="badge b-post">POST</span></td><td><code>/payments/webhook</code></td>
+        <td><span class="badge b-pub">PUBLIC</span></td>
+        <td>Appelé par Stripe. <strong>Jamais par le frontend.</strong> La vérification de
+            signature <em>est</em> la sécurité de cette route</td></tr>
+  </tbody>
+</table>
+
+<!-- ══════════════════ 6 ══════════════════ -->
+<h2 id="s6" class="newpage">6. Les flux métier de bout en bout</h2>
+
+<h3>6.1 Le découpage du panier en commandes</h3>
+<p>
+  C'est la mécanique la plus importante à comprendre avant de dessiner l'écran de commande.
+  <code>checkout()</code> regroupe les articles du panier par clé composite
+  <code>`${sellerId}:${type}`</code>, et crée <strong>une commande par groupe</strong>.
+</p>
+<pre><code>Panier de l'acheteur
+├── Clavier mécanique   — vendeur A, physique
+├── Souris gamer        — vendeur A, physique
+├── Ebook « NestJS »    — vendeur A, numérique
+└── Tapis de souris     — vendeur B, physique
+
+        ↓ POST /orders/checkout
+
+3 commandes distinctes, chacune avec son propre statut :
+├── Commande 1 · vendeur A · physical · [Clavier, Souris]
+├── Commande 2 · vendeur A · digital  · [Ebook]
+└── Commande 3 · vendeur B · physical · [Tapis]</code></pre>
+<div class="box warn">
+  <span class="t">Trois commandes, donc trois paiements séparés</span>
+  Un seul « passer commande » côté utilisateur produit N commandes, chacune avec son propre
+  <code>total</code> et son propre PaymentIntent Stripe. Le frontend doit gérer ce cas : soit
+  enchaîner les paiements, soit présenter une page récapitulative listant les commandes créées
+  avec un bouton « Payer » par ligne. C'est une contrainte structurelle, pas un détail
+  d'implémentation — anticipez-la dès la maquette.
+</div>
+<p>
+  C'est également pendant cette boucle que le <strong>stock est réservé</strong>, article par
+  article, pour les seuls produits physiques. Si un seul article manque, tout le checkout est
+  refusé en <strong>400</strong> et les réservations déjà prises sont rendues — on n'obtient
+  jamais une commande partielle. Voir §7 nº 5 pour le détail du mécanisme de compensation.
+</p>
+
+<h3>6.2 Machine à états d'une commande</h3>
+<pre><code>                        pending_payment
+                              │
+                              │  markAsPaid()  ← webhook Stripe
+                              │                  ou confirm-cash
+              ┌───────────────┴───────────────┐
+              │                               │
+       fulfillmentType                 fulfillmentType
+        === 'digital'                   === 'physical'
+              │                               │
+              ▼                               ▼
+         completed  ✉ email(s)           processing
+         (terminal)                           │
+                                              │ PATCH /:id/ship   (vendeur)
+                                              ▼
+                                           shipped
+                                              │
+                                              │ PATCH /:id/confirm-delivery
+                                              │                   (acheteur)
+                                              ▼
+                                          delivered
+                                          (terminal)
+
+  pending_payment ─┐
+                   ├─ PATCH /:id/cancel (acheteur ou vendeur) → cancelled
+  processing ──────┘</code></pre>
+
+<table>
+  <thead><tr><th style="width:20%">Statut</th><th style="width:16%">Concerne</th><th>Signification</th></tr></thead>
+  <tbody>
+    <tr><td><code>pending_payment</code></td><td>les deux</td><td>Créée au checkout, en attente de règlement</td></tr>
+    <tr><td><code>processing</code></td><td>physique</td><td>Payée, le vendeur doit préparer et expédier</td></tr>
+    <tr><td><code>shipped</code></td><td>physique</td><td>Expédiée par le vendeur</td></tr>
+    <tr><td><code>delivered</code></td><td>physique</td><td>Réception confirmée par l'acheteur — <strong>terminal</strong></td></tr>
+    <tr><td><code>completed</code></td><td>numérique</td><td>Payée et livrée par email — <strong>terminal</strong></td></tr>
+    <tr><td><code>cancelled</code></td><td>les deux</td><td>Annulée avant expédition</td></tr>
+  </tbody>
+</table>
+<p class="small">
+  Notez l'asymétrie : le parcours physique se termine sur <code>delivered</code>, le parcours
+  numérique sur <code>completed</code>. Deux statuts terminaux différents pour un même concept
+  de « commande aboutie ». Votre affichage frontend doit traiter les deux comme un succès —
+  ne filtrez pas sur <code>completed</code> seul, vous manqueriez toutes les commandes physiques.
+</p>
+
+<h3 class="newpage">6.3 Paiement par carte (Stripe)</h3>
+<pre><code>Frontend                    Backend                       Stripe
+   │                           │                            │
+   ├─ POST /orders/checkout ──▶│                            │
+   │◀── [ Order(s) ] ──────────┤                            │
+   │                           │                            │
+   ├─ POST /payments/:id/      │                            │
+   │       create-intent ─────▶├─ paymentIntents.create ───▶│
+   │                           │◀── intent (client_secret) ─┤
+   │                           ├─ stocke intent.id          │
+   │◀── { clientSecret } ──────┤    sur la commande         │
+   │                           │                            │
+   ├─ Stripe.js confirme le paiement (carte saisie) ───────▶│
+   │                           │                            │
+   │                           │◀── POST /payments/webhook ─┤
+   │                           │    payment_intent.succeeded│
+   │                           ├─ vérifie la signature      │
+   │                           ├─ markAsPaid(orderId)       │
+   │                           ├─ ✉ si numérique            │
+   │                           │                            │</code></pre>
+<p>Trois points à retenir pour l'implémentation frontend :</p>
+<ul>
+  <li>L'<code>orderId</code> voyage dans <code>metadata</code> du PaymentIntent. C'est ainsi
+      que le webhook retrouve la commande — le frontend n'a rien à faire pour cela.</li>
+  <li>Les montants sont convertis en centimes (<code>Math.round(total * 100)</code>), comme
+      l'exige Stripe.</li>
+  <li><strong>Le webhook est asynchrone.</strong> Quand Stripe.js confirme côté client, la
+      commande n'est pas encore passée en <code>processing</code> — le webhook peut arriver
+      une ou deux secondes plus tard. Ne redirigez pas vers une page qui affiche le statut
+      brut en supposant qu'il est déjà à jour ; prévoyez un état « paiement en cours de
+      confirmation », avec relance périodique ou message d'attente.</li>
+</ul>
+<div class="box ok">
+  <span class="t">L'idempotence est correctement gérée</span>
+  <code>markAsPaid()</code> commence par <code>if (order.status !== 'pending_payment') return order;</code>.
+  Stripe pouvant livrer un même webhook plusieurs fois, cette garde évite qu'une commande soit
+  traitée deux fois et que les emails de livraison numérique partent en double.
+</div>
+
+<h3>6.4 Paiement en espèces</h3>
+<p>
+  Beaucoup plus simple, et pensé pour la remise en main propre. La commande est créée en
+  <code>pending_payment</code>, puis le <strong>vendeur</strong> appelle
+  <code>PATCH /payments/:orderId/confirm-cash</code> après avoir reçu l'argent. Le même
+  <code>markAsPaid()</code> est invoqué — donc rigoureusement le même comportement en aval,
+  y compris l'envoi des emails pour les produits numériques.
+</p>
+<div class="box warn">
+  <span class="t">Une faiblesse de confiance à connaître</span>
+  Rien ne vérifie que l'acheteur a réellement payé. Le vendeur seul atteste. Pour un MVP entre
+  utilisateurs qui se rencontrent, cela se défend ; à terme, une double confirmation
+  acheteur + vendeur serait plus robuste.
+</div>
+
+<h3>6.5 Livraison d'un produit numérique</h3>
+<p>
+  Déclenchée automatiquement dans <code>markAsPaid()</code> lorsque
+  <code>fulfillmentType === 'digital'</code>. La méthode privée
+  <code>deliverDigitalItems()</code> récupère l'acheteur, parcourt les lignes de commande et
+  envoie <strong>un email par article</strong> possédant un <code>fileKey</code>.
+</p>
+<div class="box danger">
+  <span class="t">Le <code>fileKey</code> est envoyé tel quel comme lien</span>
+  <code>sendDigitalDelivery(buyer.email, item.title, product.fileKey)</code> — le troisième
+  paramètre s'appelle <code>downloadUrl</code> et atterrit directement dans un
+  <code>&lt;a href&gt;</code>. Or le schéma décrit explicitement <code>fileKey</code> comme
+  « référence de stockage, jamais une URL publique ». Il manque la couche qui transforme cette
+  référence en URL signée à durée limitée. De plus, <code>downloadLimit</code> est stocké mais
+  aucun compteur ne le fait respecter : le lien est réutilisable indéfiniment et partageable.
+</div>
+
+<!-- ══════════════════ 7 ══════════════════ -->
+<h2 id="s7" class="newpage">7. Corrections appliquées</h2>
+<p>
+  Les huit points relevés lors de l'audit initial ont tous été corrigés. Cette section décrit
+  ce qui a changé et pourquoi — elle vaut autant comme journal de décisions que comme
+  vérification. L'ensemble a été validé par <strong>39 tests de bout en bout</strong> contre la
+  pile réelle (Mongo, Redis, API).
+</p>
+
+<h3>✅ Nº 1 — CORS activé</h3>
+<pre><code>// src/main.ts
+app.enableCors({
+  origin: process.env.FRONTEND_URL || 'http://localhost:5173',
+  credentials: true,
+});</code></pre>
+<p>
+  <code>FRONTEND_URL</code> a été ajouté à <code>.env.example</code> et au
+  <code>docker-compose.yml</code>. Le choix de <code>||</code> plutôt que <code>??</code> est
+  volontaire : docker-compose transmet une chaîne vide lorsqu'une variable est absente du
+  <code>.env</code>, et <code>??</code> ne rattrape que <code>null</code> et
+  <code>undefined</code> — l'origine autorisée aurait alors été <code>""</code>, bloquant tout.
+</p>
+
+<h3>✅ Nº 2 — Publication des produits</h3>
+<p>
+  Une route dédiée a été retenue plutôt que l'ouverture du champ <code>status</code> dans le DTO :
+  publier est une action métier distincte d'une édition de contenu, et elle mérite son propre
+  bouton dans l'interface.
+</p>
+<pre><code>PATCH /products/:id/status     { status: 'draft' | 'active' }</code></pre>
+<p>
+  <code>'suspended'</code> est délibérément absent de <code>UpdateProductStatusDto</code> :
+  c'est un statut de <strong>modération</strong>, il n'appartient pas au vendeur de se suspendre
+  ou de se réactiver lui-même. Une tentative renvoie un <strong>400</strong>. La route filtre sur
+  <code>{ _id, sellerId }</code>, donc un vendeur ne peut publier que ses propres produits.
+</p>
+
+<h3>✅ Nº 3 — Tableau de bord vendeur</h3>
+<pre><code>GET /products/mine      → tous statuts, brouillons inclus</code></pre>
+<p>
+  Déclarée <strong>avant</strong> <code>@Get(':id')</code> dans le contrôleur — le journal de
+  démarrage confirme l'ordre de résolution :
+</p>
+<pre><code>Mapped {/products, GET} route
+Mapped {/products/mine, GET} route      ← avant
+Mapped {/products/:id, GET} route       ← après</code></pre>
+<p class="small">
+  Contrairement au catalogue public, cette route renvoie un tableau simple et non paginé :
+  un vendeur gère un nombre de produits qui tient sur un écran, et la pagination compliquerait
+  inutilement l'interface de gestion.
+</p>
+
+<h3>✅ Nº 4 — Upload verrouillé</h3>
+<pre><code>@UseGuards(JwtAuthGuard, RolesGuard)
+@Roles('seller')
+@UseInterceptors(FileInterceptor('image', {
+  limits: { fileSize: 5 * 1024 * 1024 },
+  fileFilter: (_req, file, cb) => {
+    if (!/^image\/(jpeg|png|webp)$/.test(file.mimetype)) {
+      return cb(new BadRequestException('Format non supporté…'), false);
+    }
+    cb(null, true);
+  },
+})) </code></pre>
+<p>
+  Passer une <em>erreur</em> au callback plutôt que <code>cb(null, false)</code> produit un
+  <strong>400</strong> explicite. Avec <code>false</code>, Multer écarte silencieusement le
+  fichier et le contrôleur répondrait « aucun fichier reçu » — un message trompeur qui enverrait
+  l'utilisateur chercher au mauvais endroit.
+</p>
+
+<h3 class="newpage">✅ Nº 5 — Gestion du stock</h3>
+<p>Le décrément est <strong>atomique</strong> : la condition fait partie du filtre de la requête.</p>
+<pre><code>async decrementStock(productId: string, quantity: number): Promise&lt;boolean&gt; {
+  const result = await this.productModel.updateOne(
+    { _id: productId, stock: { $gte: quantity } },   // ← la garde est dans le filtre
+    { $inc: { stock: -quantity } },
+  ).exec();
+  return result.modifiedCount === 1;
+}</code></pre>
+<p>
+  Deux commandes simultanées ne peuvent donc pas faire passer le stock sous zéro : MongoDB
+  applique les deux <code>updateOne</code> en série, et la seconde ne trouve aucun document
+  correspondant. Une vérification en deux temps (lire puis écrire) laisserait au contraire une
+  fenêtre de concurrence.
+</p>
+<p><code>checkout()</code> réserve le stock article par article, avec compensation en cas d'échec :</p>
+<pre><code>const reserved = [];
+let ordersCreated = false;
+try {
+  for (const cartItem of cart.items) {
+    if (product.type === 'physical') {
+      const ok = await this.productsService.decrementStock(/* … */);
+      if (!ok) throw new BadRequestException(`Stock insuffisant pour « ${product.title} »`);
+      reserved.push({ productId, quantity });
+    }
+    /* … regroupement par vendeur + type … */
+  }
+  const orders = await Promise.all(/* … */);
+  ordersCreated = true;
+  await this.cartService.clearCart(buyerId);
+  return orders;
+} catch (err) {
+  if (!ordersCreated) await this.releaseReservations(reserved);
+  throw err;
+}</code></pre>
+<div class="box info">
+  <span class="t">Pourquoi le drapeau <code>ordersCreated</code> ?</span>
+  Une fois les commandes enregistrées, la réservation de stock leur appartient. Restituer le
+  stock à ce stade créerait exactement la survente que l'on cherche à empêcher : les articles
+  seraient remis en rayon alors qu'ils sont déjà vendus. La compensation ne doit donc s'appliquer
+  qu'aux échecs survenus <em>avant</em> la création des commandes.
+</div>
+<p>
+  L'annulation restitue symétriquement le stock. Les deux seuls statuts annulables —
+  <code>pending_payment</code> et <code>processing</code> — sont tous deux postérieurs au
+  checkout, donc le stock a bien été décompté dans les deux cas.
+</p>
+
+<h3>✅ Nº 6 — Le prix promotionnel est appliqué</h3>
+<pre><code>const hasPromo = product.promoPrice != null && product.promoPrice &lt; product.price;
+const unitPrice = hasPromo ? product.promoPrice! : product.price;
+
+items.push({
+  price: unitPrice,                                    // ce qui est facturé
+  ...(hasPromo ? { originalPrice: product.price } : {}), // le prix barré
+  subtotal: unitPrice * cart[productId],
+});</code></pre>
+<p>
+  La convention retenue : <code>price</code> est <strong>toujours</strong> le montant réellement
+  facturé, et <code>originalPrice</code> n'apparaît que lorsqu'une promotion s'applique. Le
+  frontend n'a donc aucun arbitrage à faire — il affiche <code>price</code>, et barre
+  <code>originalPrice</code> s'il est présent.
+</p>
+<p class="small">
+  Le test <code>promoPrice &lt; price</code> évite qu'une « promotion » saisie par erreur au-dessus
+  du prix normal ne majore la facture. Comme <code>OrderItem</code> fige <code>cartItem.price</code>
+  au checkout, c'est bien le prix promo qui est gravé dans la commande.
+</p>
+
+<h3>✅ Nº 7 — Les emails ne font plus échouer les opérations</h3>
+<p>
+  À l'inscription, l'échec d'envoi est journalisé sans interrompre le flux : le compte étant
+  déjà créé, propager l'erreur afficherait un échec à un utilisateur dont le compte existe —
+  et qui ne pourrait plus se réinscrire (409 Conflict).
+</p>
+<pre><code>try {
+  await this.emailService.sendWelcomeEmail(user.email, user.name);
+} catch (err) {
+  this.logger.warn(`Email de bienvenue non envoyé à ${user.email}`, /* … */);
+}</code></pre>
+<p>
+  Dans <code>deliverDigitalItems()</code>, le <code>try/catch</code> est placé
+  <strong>à l'intérieur</strong> de la boucle : un envoi défaillant ne prive plus l'acheteur des
+  articles suivants de la même commande.
+</p>
+
+<h3>✅ Nº 8 — Points secondaires</h3>
+<table>
+  <thead><tr><th style="width:30%">Point</th><th>Correction</th></tr></thead>
+  <tbody>
+    <tr><td><code>shippingOptions</code></td>
+        <td>Ajouté au DTO via <code>ShippingOptionDto</code> + <code>@ValidateNested</code> et
+            <code>@Type</code>. Facultatif même en physique : un vendeur peut ne proposer qu'un
+            retrait en main propre</td></tr>
+    <tr><td>Pagination</td>
+        <td><code>?page=</code> / <code>?limit=</code> (défauts 1 / 20, <strong>plafond 100</strong>).
+            Réponse <code>{ items, total, page, limit, totalPages }</code></td></tr>
+    <tr><td>Recherche</td>
+        <td><code>?q=</code> sur titre et description. Regex insensible à la casse plutôt qu'un
+            index <code>$text</code> : elle trouve les correspondances partielles
+            (« clav » → « clavier »), là où un index texte n'indexe que des mots entiers.
+            Les métacaractères sont échappés</td></tr>
+    <tr><td>Relations peuplées</td>
+        <td><code>categoryId</code> (name, slug) et <code>sellerId</code> (name) sur les routes
+            d'affichage. <strong>Volontairement pas</strong> sur <code>findOne()</code> interne —
+            voir l'encadré ci-dessous</td></tr>
+    <tr><td>Suppression de catégorie</td>
+        <td><strong>400</strong> si elle contient des sous-catégories ou des produits, avec le
+            décompte dans le message</td></tr>
+    <tr><td><code>DELETE /cart</code></td>
+        <td>Renvoie désormais <code>{ items: [], total: 0 }</code>, comme les quatre autres
+            routes du panier</td></tr>
+  </tbody>
+</table>
+<div class="box warn">
+  <span class="t">Piège évité : <code>populate</code> casse <code>.toString()</code></span>
+  <code>ProductsService.findOne()</code> est utilisé en interne par <code>CartService</code> et
+  <code>OrdersService</code>, qui lisent <code>product.sellerId.toString()</code> pour regrouper
+  les commandes. Sur un champ peuplé, <code>toString()</code> ne renvoie plus l'ObjectId mais la
+  représentation du document — le regroupement par vendeur aurait silencieusement volé en éclats.
+  D'où deux méthodes distinctes : <code>findOne()</code> reste brute pour les appels internes,
+  <code>findOneDetailed()</code> peuple pour l'affichage.
+</div>
+
+<h3>Couverture des tests</h3>
+<p>
+  39 assertions exécutées contre la pile réelle, toutes vertes : révocation de token au logout,
+  refus de <code>/categories</code> à un vendeur (403), invisibilité puis publication d'un
+  brouillon, refus de <code>'suspended'</code>, pagination et <code>page=0</code> rejeté,
+  recherche partielle, peuplement des relations, upload refusé sans token (401) / à un acheteur
+  (403) / en PDF (400), prix promo facturé à 80 au lieu de 100, décrément 3→1 au checkout,
+  restitution à 3 après annulation, survente refusée avec compensation vérifiée, et suppression
+  de catégorie bloquée dans les deux cas de figure.
+</p>
+
+<h2 id="s8" class="newpage">8. Structure de frontend recommandée</h2>
+
+<h3>Ce qui est déjà installé</h3>
+<p>
+  <code>frontend/src/</code> ne contient aujourd'hui que le squelette Vite
+  (<code>App.tsx</code>, <code>main.tsx</code>, deux CSS, des assets). Les dépendances, elles,
+  sont déjà choisies — et bien choisies :
+</p>
+<table>
+  <thead><tr><th style="width:32%">Paquet</th><th>Rôle attendu</th></tr></thead>
+  <tbody>
+    <tr><td>React 19 + Vite 8</td><td>Socle et outillage de build</td></tr>
+    <tr><td><code>@reduxjs/toolkit</code> + <code>react-redux</code></td><td>État global — <strong>et RTK Query pour l'appel API</strong></td></tr>
+    <tr><td><code>react-router-dom</code> 7</td><td>Routage et protection des routes</td></tr>
+    <tr><td><code>react-hook-form</code> + <code>zod</code> + <code>@hookform/resolvers</code></td><td>Formulaires et validation client</td></tr>
+    <tr><td>Tailwind CSS 4 (<code>@tailwindcss/vite</code>)</td><td>Styles</td></tr>
+  </tbody>
+</table>
+<div class="box info">
+  <span class="t">Recommandation : utilisez RTK Query, pas des <code>fetch</code> manuels</span>
+  Redux Toolkit est déjà installé, et RTK Query en fait partie sans dépendance supplémentaire.
+  Il vous donne le cache, la déduplication des requêtes, l'invalidation par tags et les états
+  de chargement — tout ce que vous réécririez à la main autrement. Un point particulièrement
+  pertinent ici : les routes du panier renvoyant l'état complet, vous pouvez mettre le cache à
+  jour directement dans <code>onQueryStarted</code> au lieu d'invalider et recharger.
+</div>
+
+<h3>Arborescence proposée</h3>
+<pre><code>frontend/src/
+├── app/
+│   ├── store.ts                 configureStore + middleware RTK Query
+│   └── hooks.ts                 useAppDispatch / useAppSelector typés
+│
+├── features/                    une tranche verticale par domaine backend
+│   ├── auth/       authApi.ts, authSlice.ts, LoginForm, RegisterForm
+│   ├── products/   productsApi.ts, ProductCard, ProductGrid, ProductForm
+│   ├── categories/ categoriesApi.ts, CategoryTree, CategoryFilter
+│   ├── cart/       cartApi.ts, CartDrawer, CartItemRow
+│   ├── orders/     ordersApi.ts, OrderCard, OrderStatusBadge, OrderTimeline
+│   └── payments/   paymentsApi.ts, StripeCheckout, CashPaymentNotice
+│
+├── components/                  UI réutilisable, sans logique métier
+│   ├── ui/         Button, Input, Modal, Badge, Spinner, EmptyState
+│   └── layout/     Header, Footer, Sidebar, RoleNav
+│
+├── routes/
+│   ├── router.tsx               createBrowserRouter
+│   ├── ProtectedRoute.tsx       exige un token
+│   └── RoleRoute.tsx            exige un rôle précis
+│
+├── pages/
+│   ├── public/     Home, ProductList, ProductDetail, Login, Register
+│   ├── buyer/      Cart, Checkout, MyPurchases, OrderDetail
+│   ├── seller/     Dashboard, MyProducts, ProductEditor, MySales
+│   └── admin/      Categories
+│
+├── lib/
+│   ├── apiClient.ts             baseQuery : URL de base + en-tête Bearer
+│   ├── schemas.ts               schémas Zod alignés sur les DTO backend
+│   └── orderStatus.ts           libellés FR + couleurs par statut
+│
+└── types/api.ts                 types TS miroirs des schémas Mongoose</code></pre>
+
+<h3 class="newpage">Points de câblage à ne pas manquer</h3>
+
+<h4>1. L'injection du token</h4>
+<p>
+  Centralisez-la dans le <code>baseQuery</code> de RTK Query, jamais appel par appel :
+</p>
+<pre><code>const baseQuery = fetchBaseQuery({
+  baseUrl: import.meta.env.VITE_API_URL,   // http://localhost:3000
+  prepareHeaders: (headers, { getState }) => {
+    const token = (getState() as RootState).auth.token;
+    if (token) headers.set('Authorization', `Bearer ${token}`);
+    return headers;
+  },
+});</code></pre>
+
+<h4>2. La déconnexion globale sur 401</h4>
+<p>
+  Sans refresh token, un 401 signifie toujours « session finie ». Enveloppez le
+  <code>baseQuery</code> pour purger l'état et rediriger :
+</p>
+<pre><code>const baseQueryWithAuth: BaseQueryFn = async (args, api, extra) => {
+  const result = await baseQuery(args, api, extra);
+  if (result.error?.status === 401) {
+    api.dispatch(logout());          // vide le store + localStorage
+  }
+  return result;
+};</code></pre>
+
+<h4>3. Trois espaces distincts, pilotés par le rôle</h4>
+<p>
+  <code>GET /auth/me</code> renvoie le rôle. Faites-en la clé de votre navigation : un acheteur
+  ne doit pas voir « Mes ventes », un vendeur doit avoir un tableau de bord produits, l'admin
+  la gestion des catégories. <code>RoleRoute</code> protège les routes, mais masquez aussi les
+  liens — une route protégée dont le lien est visible est une mauvaise expérience.
+</p>
+
+<h4>4. Le formulaire produit est le morceau le plus délicat</h4>
+<p>
+  Il doit refléter la validation conditionnelle du backend. Avec Zod, un
+  <code>discriminatedUnion</code> exprime exactement la même règle :
+</p>
+<pre><code>const productSchema = z.discriminatedUnion('type', [
+  z.object({
+    type: z.literal('physical'),
+    stock: z.number().int().min(0),
+    weightGrams: z.number().int().min(0),
+    /* ...champs communs */
+  }),
+  z.object({
+    type: z.literal('digital'),
+    fileKey: z.string().min(1),
+    downloadLimit: z.number().int().min(1),
+    /* ...champs communs */
+  }),
+]);</code></pre>
+<p class="small">
+  Et n'envoyez que les champs du variant actif : <code>forbidNonWhitelisted</code> rejettera
+  un <code>stock</code> traînant sur un produit numérique.
+</p>
+
+<h4>5. L'upload d'image précède la création du produit</h4>
+<p>
+  Le flux est en deux temps : <code>POST /upload/image</code> renvoie une URL, que vous placez
+  ensuite dans le tableau <code>images</code> du <code>POST /products</code>. Prévoyez un
+  composant d'upload autonome, avec prévisualisation et suppression, dont la valeur de sortie
+  est un <code>string[]</code> d'URLs.
+</p>
+
+<h4>6. Le checkout renvoie un tableau</h4>
+<p>
+  Rappel de la section 6.1 : ne codez pas <code>const order = response[0]</code>. Après
+  <code>POST /orders/checkout</code>, redirigez vers un récapitulatif listant
+  <strong>toutes</strong> les commandes créées, avec pour chacune son montant et son action de
+  paiement.
+</p>
+
+<h3>Ordre de construction suggéré</h3>
+<ol>
+  <li><strong>Socle :</strong> store Redux, <code>baseQuery</code> avec token, router,
+      <code>ProtectedRoute</code>, layout et navigation.</li>
+  <li><strong>Authentification :</strong> inscription, connexion, <code>/auth/me</code> au
+      démarrage, déconnexion. C'est la porte d'entrée de tout le reste.</li>
+  <li><strong>Catalogue public :</strong> liste des produits, filtre par catégorie, page produit.
+      Aucun token nécessaire — vous validez le socle sans dépendre de l'auth.</li>
+  <li><strong>Panier :</strong> ajout, modification, suppression, badge de quantité.</li>
+  <li><strong>Espace vendeur :</strong> mes produits, création avec upload, publication.</li>
+  <li><strong>Commandes :</strong> checkout, mes achats, mes ventes, transitions de statut.</li>
+  <li><strong>Paiement Stripe :</strong> en dernier — c'est le plus dépendant de tout le reste,
+      et le plus pénible à tester.</li>
+</ol>
+
+<div class="box ok" style="margin-top:20px">
+  <span class="t">En résumé</span>
+  Le backend est solidement structuré : séparation nette des modules, validation stricte,
+  règles métier centralisées au bon endroit, instantanés de commande bien pensés, idempotence
+  du webhook gérée. Les huit points relevés à l'audit ont tous été corrigés et vérifiés
+  (section 7) — aucun ne remettait en cause l'architecture. Le contrat d'API est stable :
+  vous pouvez attaquer le frontend dans l'ordre proposé ci-dessus.
+</div>
+
+<div class="box warn" style="margin-top:14px">
+  <span class="t">Ce qui reste hors périmètre</span>
+  Deux points connus n'ont volontairement pas été traités, car ils dépassent la correction de
+  bugs. <strong>Les liens de téléchargement numériques</strong> (§6.5) exposent toujours le
+  <code>fileKey</code> brut : il faudrait des URLs signées à durée limitée et un compteur
+  appliquant <code>downloadLimit</code>. <strong>Les frais de port</strong> sont désormais
+  saisissables via <code>shippingOptions</code>, mais ne sont ni choisis au checkout ni ajoutés
+  au <code>total</code> — le modèle de commande n'a pas de champ pour cela. Les deux méritent
+  d'être décidés avant la mise en production.
+</div>
+
+</body>
+</html>

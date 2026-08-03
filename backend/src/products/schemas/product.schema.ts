@@ -20,8 +20,9 @@ export class Product {
   @Prop({ required: true, min: 0 })
   price: number;
 
+  // Quand il est défini, c'est LUI qui est facturé — voir CartService.
   @Prop({ required: false, min: 0 })
-  promoPrice: number;
+  promoPrice?: number;
 
   // Cloudinary URLs from the upload module — never binary data here.
   @Prop({ type: [String], default: [] })

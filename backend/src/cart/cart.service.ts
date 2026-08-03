@@ -43,6 +43,7 @@ export class CartService {
       quantity: number;
       title: string;
       price: number;
+      originalPrice?: number;
       images: string[];
       subtotal: number;
     }[] = [];
@@ -51,13 +52,21 @@ export class CartService {
     for (const productId of productIds) {
       try {
         const product = await this.productsService.findOne(productId);
+
+        // `price` est toujours le montant réellement facturé. Quand une
+        // promo s'applique, `originalPrice` porte le prix barré à afficher.
+        const hasPromo =
+          product.promoPrice != null && product.promoPrice < product.price;
+        const unitPrice = hasPromo ? product.promoPrice! : product.price;
+
         items.push({
           productId,
           quantity: cart[productId],
           title: product.title,
-          price: product.price,
+          price: unitPrice,
+          ...(hasPromo ? { originalPrice: product.price } : {}),
           images: product.images,
-          subtotal: product.price * cart[productId],
+          subtotal: unitPrice * cart[productId],
         });
       } catch {
         delete cart[productId];
@@ -105,7 +114,10 @@ export class CartService {
     return this.getCart(userId);
   }
 
-  clearCart(userId: string) {
-    return this.redisService.del(this.cartKey(userId));
+  // Renvoie le panier (vide) comme les autres mutations, pour que le client
+  // n'ait pas à traiter ce cas différemment des quatre autres routes.
+  async clearCart(userId: string) {
+    await this.redisService.del(this.cartKey(userId));
+    return { items: [], total: 0 };
   }
 }

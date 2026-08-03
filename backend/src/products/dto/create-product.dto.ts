@@ -1,3 +1,4 @@
+import { Type } from 'class-transformer';
 import {
   IsEnum,
   IsInt,
@@ -8,9 +9,20 @@ import {
   IsString,
   Min,
   ValidateIf,
+  ValidateNested,
   IsArray,
   IsUrl
 } from 'class-validator';
+
+export class ShippingOptionDto {
+  @IsString()
+  @IsNotEmpty()
+  label: string;
+
+  @IsNumber()
+  @Min(0)
+  cost: number;
+}
 
 export class CreateProductDto {
   @IsMongoId()
@@ -31,7 +43,7 @@ export class CreateProductDto {
   @IsOptional()
   @IsNumber()
   @Min(0)
-  promoPrice: number;
+  promoPrice?: number;
 
   // through POST /upload/image first, this just references the result.
   @IsOptional()
@@ -52,6 +64,15 @@ export class CreateProductDto {
   @IsInt()
   @Min(0)
   weightGrams?: number;
+
+  // Optionnel même pour un produit physique : un vendeur peut ne proposer
+  // qu'un retrait en main propre, sans aucune option d'expédition.
+  @ValidateIf((dto) => dto.type === 'physical')
+  @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => ShippingOptionDto)
+  shippingOptions?: ShippingOptionDto[];
 
   // ---- required only when type = 'digital' ----
   @ValidateIf((dto) => dto.type === 'digital')
