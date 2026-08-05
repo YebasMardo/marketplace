@@ -61,7 +61,7 @@ export class PaymentsService {
     }
 
     if (event.type === 'payment_intent.succeeded') {
-      const intent = event.data.object as Stripe.PaymentIntent;
+      const intent = event.data.object;
       const orderId = intent.metadata.orderId;
       if (orderId) {
         await this.ordersService.markAsPaid(orderId);

@@ -11,7 +11,7 @@ import {
   ValidateIf,
   ValidateNested,
   IsArray,
-  IsUrl
+  IsUrl,
 } from 'class-validator';
 
 export class ShippingOptionDto {

@@ -30,7 +30,9 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     const blacklisted =
       token && (await this.redisService.get(`auth:blacklist:${token}`));
     if (blacklisted) {
-      throw new UnauthorizedException('Session expirée, veuillez vous reconnecter');
+      throw new UnauthorizedException(
+        'Session expirée, veuillez vous reconnecter',
+      );
     }
 
     return { userId: payload.sub, role: payload.role };

@@ -5,9 +5,7 @@ import { User, UserDocument } from './schemas/user.schema';
 
 @Injectable()
 export class UsersService {
-  constructor(
-    @InjectModel(User.name) private userModel: Model<UserDocument>,
-  ) {}
+  constructor(@InjectModel(User.name) private userModel: Model<UserDocument>) {}
 
   findByEmail(email: string) {
     return this.userModel.findOne({ email }).exec();

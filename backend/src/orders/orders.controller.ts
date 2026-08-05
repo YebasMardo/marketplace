@@ -1,4 +1,12 @@
-import { Body, Controller, Get, Param, Patch, Post, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Patch,
+  Post,
+  UseGuards,
+} from '@nestjs/common';
 import { OrdersService } from './orders.service';
 import { CheckoutDto } from './dto/checkout.dto';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
@@ -12,10 +20,7 @@ export class OrdersController {
   constructor(private readonly ordersService: OrdersService) {}
 
   @Post('checkout')
-  checkout(
-    @Body() dto: CheckoutDto,
-    @CurrentUser() user: { userId: string },
-  ) {
+  checkout(@Body() dto: CheckoutDto, @CurrentUser() user: { userId: string }) {
     return this.ordersService.checkout(user.userId, dto.paymentMethod);
   }
 

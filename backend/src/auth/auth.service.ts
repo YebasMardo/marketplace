@@ -84,7 +84,7 @@ export class AuthService {
   }
 
   async logout(token: string) {
-    const decoded = this.jwtService.decode(token) as { exp?: number } | null;
+    const decoded = this.jwtService.decode(token);
     const ttlSeconds = decoded?.exp
       ? decoded.exp - Math.floor(Date.now() / 1000)
       : 0;

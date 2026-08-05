@@ -16,7 +16,12 @@ import { EmailService } from '../email/email.service';
 interface OrderGroup {
   sellerId: string;
   fulfillmentType: 'physical' | 'digital';
-  items: { productId: string; title: string; price: number; quantity: number }[];
+  items: {
+    productId: string;
+    title: string;
+    price: number;
+    quantity: number;
+  }[];
 }
 
 @Injectable()
