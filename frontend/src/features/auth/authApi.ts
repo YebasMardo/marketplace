@@ -21,18 +21,19 @@ export const authApi = api.injectEndpoints({
   endpoints: (builder) => ({
     login: builder.mutation<AuthResponse, LoginBody>({
       query: (body) => ({ url: '/auth/login', method: 'POST', body }),
+      invalidatesTags: ['Me'],
     }),
     register: builder.mutation<AuthResponse, RegisterBody>({
       query: (body) => ({ url: '/auth/register', method: 'POST', body }),
+      invalidatesTags: ['Me'],
     }),
     getMe: builder.query<User, void>({
       query: () => '/auth/me',
       providesTags: ['Me'],
     }),
-    // Le token est lu depuis l'en-tête Authorization par le backend —
-    // aucun corps à envoyer.
     logoutApi: builder.mutation<{ message: string }, void>({
       query: () => ({ url: '/auth/logout', method: 'POST' }),
+      invalidatesTags: ['Me'],
     }),
   }),
 });

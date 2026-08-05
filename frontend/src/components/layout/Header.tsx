@@ -32,6 +32,9 @@ export function Header() {
           <Link to="/" className="text-slate-600 hover:text-slate-900">
             Catalogue
           </Link>
+          <Link to="/products" className="text-slate-600 hover:text-slate-900">
+            Boutique
+          </Link>
 
           {!token && (
             <>
