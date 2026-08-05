@@ -19,7 +19,7 @@ export class CartService {
 
   private async getRawCart(userId: string): Promise<CartMap> {
     const raw = await this.redisService.get(this.cartKey(userId));
-    return raw ? JSON.parse(raw) : {};
+    return raw ? (JSON.parse(raw) as CartMap) : {};
   }
 
   private saveCart(userId: string, cart: CartMap) {

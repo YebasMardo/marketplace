@@ -9,6 +9,6 @@ import { ProductsModule } from '../products/products.module';
   imports: [ProductsModule],
   controllers: [CartController],
   providers: [CartService],
-  exports: [CartService]
+  exports: [CartService],
 })
 export class CartModule {}
