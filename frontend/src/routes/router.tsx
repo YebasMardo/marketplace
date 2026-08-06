@@ -22,6 +22,11 @@ import { MySales } from '../pages/seller/MySales';
 import { Categories } from '../pages/admin/Categories';
 
 export const router = createBrowserRouter([
+  // Auth — hors du Layout : ces écrans occupent toute la fenêtre (split-screen)
+  // et portent leur propre en-tête (le logo renvoie à l'accueil).
+  { path: '/login', element: <Login /> },
+  { path: '/register', element: <Register /> },
+
   {
     element: <Layout />,
     children: [
@@ -31,8 +36,6 @@ export const router = createBrowserRouter([
       { path: '/', element: <Home /> },
       { path: '/products', element: <ProductList /> },
       { path: '/products/:id', element: <ProductDetail /> },
-      { path: '/login', element: <Login /> },
-      { path: '/register', element: <Register /> },
 
       // Authentifié, tout rôle confondu
       {

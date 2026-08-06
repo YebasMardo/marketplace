@@ -1,3 +1,3 @@
 export function EmptyState({ message }: { message: string }) {
-  return <div className="text-center py-16 text-slate-500">{message}</div>;
+  return <div className="text-center py-16 text-ink-faint">{message}</div>;
 }

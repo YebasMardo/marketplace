@@ -6,6 +6,15 @@ import { useLoginMutation } from '../../features/auth/authApi';
 import { useAppDispatch } from '../../app/hooks';
 import { setToken } from '../../features/auth/authSlice';
 import { getErrorMessage } from '../../lib/errorUtils';
+import {
+  AuthLayout,
+  AuthSocialRow,
+  authErrorClass,
+  authInputClass,
+  authLabelClass,
+  authSubmitClass,
+} from '../../components/layout/AuthLayout';
+import { BUYER_SLIDES } from './authShowcase';
 
 export function Login() {
   const dispatch = useAppDispatch();
@@ -29,60 +38,95 @@ export function Login() {
   };
 
   return (
-    <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center bg-slate-50 px-4">
-      <form
-        onSubmit={handleSubmit(onSubmit)}
-        className="w-full max-w-sm bg-white rounded-2xl shadow-sm border border-slate-200 p-8 space-y-5"
-      >
-        <h1 className="text-2xl font-semibold text-slate-900">Connexion</h1>
-
+    <AuthLayout
+      title="Bon retour"
+      subtitle="Entrez vos identifiants pour retrouver votre compte."
+      showcaseTitle={
+        <>
+          Ce que disent
+          <br />
+          nos acheteurs.
+        </>
+      }
+      slides={BUYER_SLIDES}
+      callout={{
+        title: 'Achetez directement à ceux qui fabriquent',
+        body: 'Des milliers de produits publiés par des vendeurs indépendants, sans intermédiaire.',
+      }}
+      footer={
+        <>
+          Pas de compte ?{' '}
+          <Link to="/register" className="font-medium text-ink hover:underline underline-offset-4">
+            S'inscrire
+          </Link>
+        </>
+      }
+    >
+      <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-5">
         <div>
-          <label className="block text-sm font-medium text-slate-700 mb-1">
+          <label htmlFor="login-email" className={authLabelClass}>
             Email
           </label>
           <input
+            id="login-email"
             type="email"
+            autoComplete="email"
+            placeholder="vous@exemple.com"
+            aria-invalid={errors.email ? true : undefined}
             {...register('email')}
-            className="w-full rounded-lg border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-teal-600"
+            className={authInputClass}
           />
-          {errors.email && (
-            <p className="text-sm text-red-600 mt-1">{errors.email.message}</p>
-          )}
+          {errors.email && <p className={authErrorClass}>{errors.email.message}</p>}
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-slate-700 mb-1">
+          <label htmlFor="login-password" className={authLabelClass}>
             Mot de passe
           </label>
           <input
+            id="login-password"
             type="password"
+            autoComplete="current-password"
+            placeholder="••••••••"
+            aria-invalid={errors.password ? true : undefined}
             {...register('password')}
-            className="w-full rounded-lg border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-teal-600"
+            className={authInputClass}
           />
-          {errors.password && (
-            <p className="text-sm text-red-600 mt-1">{errors.password.message}</p>
-          )}
+          {errors.password && <p className={authErrorClass}>{errors.password.message}</p>}
+        </div>
+
+        <div className="flex items-center justify-between gap-4 pt-0.5">
+          <label className="flex items-center gap-2 text-[13px] text-ink-soft cursor-pointer select-none">
+            <input
+              type="checkbox"
+              className="h-4 w-4 rounded border-line-strong accent-clay"
+            />
+            Rester connecté
+          </label>
+          {/* Aucune route de réinitialisation n'existe côté backend pour
+              l'instant : bouton présent mais désactivé plutôt qu'un lien mort. */}
+          <button
+            type="button"
+            disabled
+            title="Réinitialisation — bientôt disponible"
+            className="text-[13px] font-medium text-ink-faint disabled:cursor-not-allowed"
+          >
+            Mot de passe oublié ?
+          </button>
         </div>
 
         {isError && (
-          <p className="text-sm text-red-600">{getErrorMessage(error)}</p>
+          <p role="alert" className="text-sm text-clay-dark">
+            {getErrorMessage(error)}
+          </p>
         )}
 
-        <button
-          type="submit"
-          disabled={isLoading}
-          className="w-full bg-teal-700 text-white rounded-lg py-2.5 font-medium hover:bg-teal-800 disabled:opacity-50 transition-colors"
-        >
+        <button type="submit" disabled={isLoading} className={authSubmitClass}>
           {isLoading ? 'Connexion...' : 'Se connecter'}
         </button>
-
-        <p className="text-sm text-slate-500 text-center">
-          Pas de compte ?{' '}
-          <Link to="/register" className="text-teal-700 font-medium">
-            S'inscrire
-          </Link>
-        </p>
       </form>
-    </div>
+
+      <AuthSocialRow />
+    </AuthLayout>
   );
 }

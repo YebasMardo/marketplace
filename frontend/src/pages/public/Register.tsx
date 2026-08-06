@@ -6,6 +6,19 @@ import { useRegisterMutation } from '../../features/auth/authApi';
 import { useAppDispatch } from '../../app/hooks';
 import { setToken } from '../../features/auth/authSlice';
 import { getErrorMessage } from '../../lib/errorUtils';
+import {
+  AuthLayout,
+  AuthSocialRow,
+  authErrorClass,
+  authInputClass,
+  authLabelClass,
+  authSubmitClass,
+} from '../../components/layout/AuthLayout';
+import { SELLER_SLIDES } from './authShowcase';
+
+const roleOptionClass =
+  'flex-1 flex items-center justify-center gap-2 rounded-xl border border-line-strong bg-paper-raised/70 py-3 text-sm font-medium text-ink-soft cursor-pointer select-none ' +
+  'transition-colors has-[:checked]:border-clay has-[:checked]:bg-clay-soft has-[:checked]:text-clay-dark';
 
 export function Register() {
   const dispatch = useAppDispatch();
@@ -32,87 +45,103 @@ export function Register() {
   };
 
   return (
-    <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center bg-slate-50 px-4">
-      <form
-        onSubmit={handleSubmit(onSubmit)}
-        className="w-full max-w-sm bg-white rounded-2xl shadow-sm border border-slate-200 p-8 space-y-5"
-      >
-        <h1 className="text-2xl font-semibold text-slate-900">Créer un compte</h1>
-
+    <AuthLayout
+      title="Créer un compte"
+      subtitle="Quelques informations et votre espace est ouvert."
+      showcaseTitle={
+        <>
+          Ce que disent
+          <br />
+          nos vendeurs.
+        </>
+      }
+      slides={SELLER_SLIDES}
+      callout={{
+        title: 'Ouvrez votre boutique en quelques minutes',
+        body: 'Publiez vos produits physiques ou numériques et suivez vos ventes depuis un tableau de bord dédié.',
+      }}
+      footer={
+        <>
+          Déjà un compte ?{' '}
+          <Link to="/login" className="font-medium text-ink hover:underline underline-offset-4">
+            Se connecter
+          </Link>
+        </>
+      }
+    >
+      <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-5">
         <div>
-          <label className="block text-sm font-medium text-slate-700 mb-1">
+          <label htmlFor="register-name" className={authLabelClass}>
             Nom
           </label>
           <input
+            id="register-name"
             type="text"
+            autoComplete="name"
+            placeholder="Votre nom"
             {...register('name')}
-            className="w-full rounded-lg border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-teal-600"
+            className={authInputClass}
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-slate-700 mb-1">
+          <label htmlFor="register-email" className={authLabelClass}>
             Email
           </label>
           <input
+            id="register-email"
             type="email"
+            autoComplete="email"
+            placeholder="vous@exemple.com"
+            aria-invalid={errors.email ? true : undefined}
             {...register('email')}
-            className="w-full rounded-lg border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-teal-600"
+            className={authInputClass}
           />
-          {errors.email && (
-            <p className="text-sm text-red-600 mt-1">{errors.email.message}</p>
-          )}
+          {errors.email && <p className={authErrorClass}>{errors.email.message}</p>}
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-slate-700 mb-1">
+          <label htmlFor="register-password" className={authLabelClass}>
             Mot de passe
           </label>
           <input
+            id="register-password"
             type="password"
+            autoComplete="new-password"
+            placeholder="8 caractères minimum"
+            aria-invalid={errors.password ? true : undefined}
             {...register('password')}
-            className="w-full rounded-lg border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-teal-600"
+            className={authInputClass}
           />
-          {errors.password && (
-            <p className="text-sm text-red-600 mt-1">{errors.password.message}</p>
-          )}
+          {errors.password && <p className={authErrorClass}>{errors.password.message}</p>}
         </div>
 
-        <div>
-          <label className="block text-sm font-medium text-slate-700 mb-2">
-            Je veux
-          </label>
+        <fieldset>
+          <legend className={authLabelClass}>Je veux</legend>
           <div className="flex gap-3">
-            <label className="flex-1 flex items-center justify-center gap-2 border border-slate-300 rounded-lg py-2 cursor-pointer has-[:checked]:border-teal-600 has-[:checked]:bg-teal-50">
-              <input type="radio" value="buyer" {...register('role')} className="accent-teal-700" />
+            <label className={roleOptionClass}>
+              <input type="radio" value="buyer" {...register('role')} className="accent-clay" />
               Acheter
             </label>
-            <label className="flex-1 flex items-center justify-center gap-2 border border-slate-300 rounded-lg py-2 cursor-pointer has-[:checked]:border-teal-600 has-[:checked]:bg-teal-50">
-              <input type="radio" value="seller" {...register('role')} className="accent-teal-700" />
+            <label className={roleOptionClass}>
+              <input type="radio" value="seller" {...register('role')} className="accent-clay" />
               Vendre
             </label>
           </div>
-        </div>
+        </fieldset>
 
         {isError && (
-          <p className="text-sm text-red-600">{getErrorMessage(error)}</p>
+          <p role="alert" className="text-sm text-clay-dark">
+            {getErrorMessage(error)}
+          </p>
         )}
 
-        <button
-          type="submit"
-          disabled={isLoading}
-          className="w-full bg-teal-700 text-white rounded-lg py-2.5 font-medium hover:bg-teal-800 disabled:opacity-50 transition-colors"
-        >
+        <button type="submit" disabled={isLoading} className={authSubmitClass}>
           {isLoading ? 'Création...' : 'Créer mon compte'}
         </button>
-
-        <p className="text-sm text-slate-500 text-center">
-          Déjà un compte ?{' '}
-          <Link to="/login" className="text-teal-700 font-medium">
-            Se connecter
-          </Link>
-        </p>
       </form>
-    </div>
+
+      <AuthSocialRow />
+    </AuthLayout>
   );
 }

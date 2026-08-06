@@ -43,12 +43,12 @@ export function Categories() {
   };
 
   return (
-    <div className="max-w-3xl mx-auto px-4 py-8">
-      <h1 className="text-2xl font-semibold text-slate-900 mb-6">Catégories</h1>
+    <div className="max-w-3xl mx-auto px-4 sm:px-6 py-10">
+      <h1 className="text-2xl text-ink mb-6">Catégories</h1>
 
       <form
         onSubmit={handleCreate}
-        className="flex flex-col sm:flex-row gap-3 mb-8 bg-white border border-slate-200 rounded-xl p-4"
+        className="flex flex-col sm:flex-row gap-3 mb-8 bg-paper-raised border border-line rounded-xl p-4"
       >
         <input
           type="text"
@@ -56,12 +56,12 @@ export function Categories() {
           value={name}
           onChange={(e) => setName(e.target.value)}
           required
-          className="flex-1 rounded-lg border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-teal-600"
+          className="flex-1 rounded-lg border border-line px-3 py-2 text-ink focus:outline-none focus:ring-2 focus:ring-ink/15 focus:border-ink transition-shadow"
         />
         <select
           value={parentId}
           onChange={(e) => setParentId(e.target.value)}
-          className="rounded-lg border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-teal-600"
+          className="rounded-lg border border-line px-3 py-2 text-ink focus:outline-none focus:ring-2 focus:ring-ink/15 focus:border-ink transition-shadow"
         >
           <option value="">Catégorie racine</option>
           {options.map(({ category, depth }) => (
@@ -73,13 +73,13 @@ export function Categories() {
         <button
           type="submit"
           disabled={isCreating}
-          className="bg-teal-700 text-white rounded-lg px-4 py-2 font-medium hover:bg-teal-800 disabled:opacity-50"
+          className="bg-ink text-paper rounded-full px-4 py-2 text-sm font-medium hover:bg-ink-hover disabled:opacity-50 transition-colors active:scale-95"
         >
           Ajouter
         </button>
       </form>
       {createFailed && (
-        <p className="text-sm text-red-600 -mt-6 mb-6">
+        <p className="text-sm text-clay -mt-6 mb-6">
           Impossible de créer cette catégorie.
         </p>
       )}
@@ -87,21 +87,21 @@ export function Categories() {
       {isLoading ? (
         <Spinner />
       ) : (
-        <ul className="divide-y divide-slate-200 bg-white border border-slate-200 rounded-xl overflow-hidden">
+        <ul className="divide-y divide-line bg-paper-raised border border-line rounded-xl overflow-hidden">
           {options.map(({ category, depth }) => (
             <li
               key={category._id}
               className="flex items-center justify-between px-4 py-3"
               style={{ paddingLeft: 16 + depth * 20 }}
             >
-              <span className="text-slate-800">
+              <span className="text-ink">
                 {depth > 0 && '— '}
                 {category.name}
-                <span className="text-xs text-slate-400 ml-2">/{category.slug}</span>
+                <span className="text-xs text-ink-faint ml-2">/{category.slug}</span>
               </span>
               <button
                 onClick={() => handleDelete(category._id)}
-                className="text-sm text-red-600 hover:text-red-800"
+                className="text-sm text-clay hover:text-clay-dark transition-colors"
               >
                 Supprimer
               </button>

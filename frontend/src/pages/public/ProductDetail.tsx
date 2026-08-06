@@ -9,22 +9,30 @@ export function ProductDetail() {
   if (isLoading) return <Spinner />;
   if (isError || !product) {
     return (
-      <div className="max-w-6xl mx-auto px-4 py-16 text-center text-slate-500">
+      <div className="max-w-6xl mx-auto px-4 py-16 text-center text-ink-faint">
         Produit introuvable.
       </div>
     );
-  } 
+  }
 
   const hasPromo =
     product.promoPrice != null && product.promoPrice < product.price;
+  const discount = hasPromo
+    ? Math.round(100 - (product.promoPrice! / product.price) * 100)
+    : 0;
   const category =
     typeof product.categoryId === 'object' ? product.categoryId : undefined;
   const sellerName =
     typeof product.sellerId === 'object' ? product.sellerId.name : undefined;
 
   return (
-    <div className="max-w-5xl mx-auto px-4 py-8 grid grid-cols-1 md:grid-cols-2 gap-10">
-      <div className="aspect-square bg-slate-100 rounded-xl overflow-hidden">
+    <div className="max-w-5xl mx-auto px-4 sm:px-6 py-10 grid grid-cols-1 md:grid-cols-2 gap-12">
+      <div className="relative aspect-square bg-paper-sunken rounded-xl overflow-hidden">
+        {hasPromo && (
+          <span className="absolute top-4 left-4 z-10 bg-clay text-paper text-xs font-semibold px-2.5 py-1 rounded-md">
+            -{discount}%
+          </span>
+        )}
         {product.images[0] ? (
           <img
             src={product.images[0]}
@@ -32,7 +40,7 @@ export function ProductDetail() {
             className="w-full h-full object-cover"
           />
         ) : (
-          <div className="w-full h-full flex items-center justify-center text-slate-400">
+          <div className="w-full h-full flex items-center justify-center text-ink-faint">
             Pas d'image
           </div>
         )}
@@ -42,37 +50,35 @@ export function ProductDetail() {
         {category && (
           <Link
             to={`/products?categoryId=${category._id}`}
-            className="text-sm text-teal-700"
+            className="text-xs font-medium tracking-wide uppercase text-ink-faint hover:text-ink transition-colors"
           >
             {category.name}
           </Link>
         )}
-        <h1 className="text-2xl font-semibold text-slate-900 mt-1">
-          {product.title}
-        </h1>
+        <h1 className="text-3xl mt-2 text-ink">{product.title}</h1>
         {sellerName && (
-          <p className="text-sm text-slate-500 mt-1">Vendu par {sellerName}</p>
+          <p className="text-sm text-ink-faint mt-1.5">Vendu par {sellerName}</p>
         )}
 
-        <div className="mt-4 flex items-baseline gap-3">
-          <span className="text-2xl font-semibold text-slate-900">
+        <div className="mt-5 flex items-baseline gap-3">
+          <span className={`text-2xl font-semibold ${hasPromo ? 'text-clay' : 'text-ink'}`}>
             {(hasPromo ? product.promoPrice! : product.price).toFixed(2)} €
           </span>
           {hasPromo && (
-            <span className="text-lg text-slate-400 line-through">
+            <span className="text-lg text-ink-faint line-through">
               {product.price.toFixed(2)} €
             </span>
           )}
         </div>
 
         {product.description && (
-          <p className="mt-4 text-slate-600 whitespace-pre-line">
+          <p className="mt-5 text-ink-soft leading-relaxed whitespace-pre-line">
             {product.description}
           </p>
         )}
 
         {product.type === 'physical' && (
-          <p className="mt-4 text-sm text-slate-500">
+          <p className="mt-5 text-sm text-ink-faint">
             {product.stock && product.stock > 0
               ? `${product.stock} en stock`
               : 'Rupture de stock'}

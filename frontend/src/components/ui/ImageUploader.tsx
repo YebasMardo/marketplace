@@ -36,7 +36,7 @@ export function ImageUploader({ images, onChange }: ImageUploaderProps) {
         {images.map((url) => (
           <div
             key={url}
-            className="relative w-24 h-24 rounded-lg overflow-hidden border border-slate-200"
+            className="relative w-24 h-24 rounded-lg overflow-hidden border border-line"
           >
             <img src={url} alt="" className="w-full h-full object-cover" />
             <button
@@ -56,10 +56,10 @@ export function ImageUploader({ images, onChange }: ImageUploaderProps) {
         accept="image/jpeg,image/png,image/webp"
         onChange={handleFileChange}
         disabled={isLoading}
-        className="text-sm text-slate-600"
+        className="text-sm text-ink-soft"
       />
       {isLoading && (
-        <p className="text-sm text-slate-500 mt-1">Envoi en cours...</p>
+        <p className="text-sm text-ink-faint mt-1">Envoi en cours...</p>
       )}
     </div>
   );
