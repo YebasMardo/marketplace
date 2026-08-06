@@ -12,6 +12,7 @@ export interface Category {
   name: string;
   slug: string;
   parentId: string | null;
+  imageUrl?: string | null;
 }
 
 export type ProductStatus = 'draft' | 'active' | 'suspended';

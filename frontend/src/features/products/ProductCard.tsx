@@ -1,8 +1,10 @@
 import { Link } from 'react-router-dom';
 import type { Product } from '../../types/api';
+import { useAppDispatch, useAppSelector } from '../../app/hooks';
+import { selectIsWishlisted, toggleWishlist } from '../../features/wishlist/wishlistSlice';
 
-// Statique pour l'instant : les avis et la wishlist ne sont pas encore
-// implémentés côté API. À brancher sur product.rating / product.reviewCount.
+// Statique pour l'instant : les avis ne sont pas encore implémentés côté
+// API. À brancher sur product.rating / product.reviewCount.
 const STATIC_RATING = 4.5;
 const STATIC_DELIVERY = '12-24 Hours';
 
@@ -38,6 +40,9 @@ function StarIcon({ className }: { className?: string }) {
 }
 
 export function ProductCard({ product }: { product: Product }) {
+  const dispatch = useAppDispatch();
+  const isWishlisted = useAppSelector(selectIsWishlisted(product._id));
+
   const hasPromo =
     product.promoPrice != null && product.promoPrice < product.price;
   const discount = hasPromo
@@ -75,15 +80,23 @@ export function ProductCard({ product }: { product: Product }) {
           </span>
         )}
 
-        {/* Wishlist — statique, non branchée */}
+        {/* Favoris — stockés côté client (localStorage), voir wishlistSlice */}
         <button
           type="button"
-          aria-label="Ajouter aux favoris"
-          className="absolute top-2.5 right-2.5 z-20 grid place-items-center w-9 h-9 rounded-full bg-paper-raised text-ink shadow-[0_2px_8px_rgba(17,17,17,0.14)] transition-colors duration-150 hover:text-clay active:scale-95"
+          aria-pressed={isWishlisted}
+          aria-label={
+            isWishlisted
+              ? `Retirer ${product.title} des favoris`
+              : `Ajouter ${product.title} aux favoris`
+          }
+          onClick={() => dispatch(toggleWishlist(product._id))}
+          className={`absolute top-2.5 right-2.5 z-20 grid place-items-center w-9 h-9 rounded-full bg-paper-raised shadow-[0_2px_8px_rgba(17,17,17,0.14)] transition-colors duration-150 hover:text-clay active:scale-95 ${
+            isWishlisted ? 'text-clay' : 'text-ink'
+          }`}
         >
           <svg
             viewBox="0 0 24 24"
-            fill="none"
+            fill={isWishlisted ? 'currentColor' : 'none'}
             stroke="currentColor"
             strokeWidth="2"
             strokeLinecap="round"

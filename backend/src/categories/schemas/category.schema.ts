@@ -16,6 +16,12 @@ export class Category {
   // null = top-level category. Set to a parent's _id for a sub-category.
   @Prop({ type: Types.ObjectId, ref: 'Category', default: null })
   parentId: Types.ObjectId | null;
+
+  // Cloudinary secure URL, set via POST /upload/image?folder=categories.
+  // Explicit `type: String` — Mongoose can't infer a schema type from a
+  // `string | null` union via TS reflection metadata.
+  @Prop({ type: String, trim: true, default: null })
+  imageUrl: string | null;
 }
 
 export const CategorySchema = SchemaFactory.createForClass(Category);

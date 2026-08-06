@@ -15,10 +15,13 @@ export class UploadService {
 
   // Takes the in-memory file buffer Multer gave us and streams it to
   // Cloudinary — never touches the local disk, nothing to clean up after.
-  async uploadImage(file: Express.Multer.File): Promise<string> {
+  async uploadImage(
+    file: Express.Multer.File,
+    folder: string = 'marketplace/products',
+  ): Promise<string> {
     return new Promise((resolve, reject) => {
       const uploadStream = cloudinary.uploader.upload_stream(
-        { folder: 'marketplace/products' },
+        { folder },
         (error, result) => {
           if (error || !result) {
             return reject(error);

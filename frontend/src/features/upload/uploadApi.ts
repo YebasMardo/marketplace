@@ -6,11 +6,15 @@ interface UploadResponse {
 
 export const uploadApi = api.injectEndpoints({
   endpoints: (builder) => ({
-    uploadImage: builder.mutation<UploadResponse, File>({
-      query: (file) => {
+    uploadImage: builder.mutation<
+      UploadResponse,
+      { file: File; folder?: string }
+    >({
+      query: ({ file, folder }) => {
         const formData = new FormData();
         formData.append('image', file); // le nom de champ attendu par Multer côté backend
-        return { url: '/upload/image', method: 'POST', body: formData };
+        const qs = folder ? `?folder=${encodeURIComponent(folder)}` : '';
+        return { url: `/upload/image${qs}`, method: 'POST', body: formData };
       },
     }),
   }),

@@ -1,6 +1,10 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
+import {
+  Category,
+  CategoryDocument,
+} from '../categories/schemas/category.schema';
 import { Product, ProductDocument } from './schemas/product.schema';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
@@ -10,6 +14,10 @@ import { QueryProductsDto } from './dto/query-products.dto';
 export class ProductsService {
   constructor(
     @InjectModel(Product.name) private productModel: Model<ProductDocument>,
+    // Le modèle Category est injecté directement, sans passer par
+    // CategoriesService : ce dernier dépend déjà de ProductsService
+    // (countByCategory avant suppression), l'inverse créerait un cycle.
+    @InjectModel(Category.name) private categoryModel: Model<CategoryDocument>,
   ) {}
 
   create(dto: CreateProductDto, sellerId: string) {
@@ -22,7 +30,14 @@ export class ProductsService {
     const limit = query.limit ?? 20;
 
     const filter: Record<string, unknown> = { status: 'active' };
-    if (query.categoryId) filter.categoryId = query.categoryId;
+    if (query.categoryId) {
+      // Une catégorie parente doit remonter le contenu de ses sous-catégories :
+      // cliquer sur « Informatique » sans voir les produits rangés sous
+      // « Claviers » donnerait un rayon vide sans raison apparente.
+      filter.categoryId = {
+        $in: await this.collectCategoryBranch(query.categoryId),
+      };
+    }
     if (query.sellerId) filter.sellerId = query.sellerId;
 
     if (query.q) {
@@ -140,6 +155,53 @@ export class ProductsService {
     await this.productModel
       .updateOne({ _id: productId }, { $inc: { stock: quantity } })
       .exec();
+  }
+
+  // Renvoie l'id de la catégorie demandée suivi de ceux de toute sa
+  // descendance, à n'importe quelle profondeur.
+  //
+  // L'arbre est parcouru en mémoire à partir d'un seul `find` : une taxonomie
+  // de marketplace compte quelques dizaines d'entrées, et cette approche reste
+  // insensible au type sous lequel les références sont stockées — un
+  // $graphLookup, lui, ne relierait pas un `_id` ObjectId à un `parentId`
+  // chaîne (voir la remarque sur les champs Mixed plus bas).
+  private async collectCategoryBranch(
+    categoryId: string,
+  ): Promise<(string | Types.ObjectId)[]> {
+    const categories = await this.categoryModel
+      .find({}, { _id: 1, parentId: 1 })
+      .lean()
+      .exec();
+
+    const childrenOf = new Map<string, string[]>();
+    for (const category of categories) {
+      if (!category.parentId) continue; // racine
+      const parentId = String(category.parentId);
+      const siblings = childrenOf.get(parentId) ?? [];
+      siblings.push(String(category._id));
+      childrenOf.set(parentId, siblings);
+    }
+
+    // Parcours en largeur. `seen` sert de garde-fou : un arbre malformé
+    // (A parent de B, B parent de A) boucherait sinon la requête à l'infini.
+    const branch = [categoryId];
+    const seen = new Set(branch);
+    for (let i = 0; i < branch.length; i++) {
+      for (const childId of childrenOf.get(branch[i]) ?? []) {
+        if (seen.has(childId)) continue;
+        seen.add(childId);
+        branch.push(childId);
+      }
+    }
+
+    // Chaque id est comparé sous ses deux formes. Les références sont
+    // aujourd'hui stockées en chaîne : `@Prop({ type: Types.ObjectId })` n'est
+    // plus reconnu par Mongoose 9, qui traite ces champs comme du Mixed et ne
+    // convertit donc rien. Interroger les deux formes garde ce filtre correct
+    // avant comme après la correction des schémas.
+    return branch.flatMap((id) =>
+      Types.ObjectId.isValid(id) ? [id, new Types.ObjectId(id)] : [id],
+    );
   }
 
   // Neutralise les métacaractères pour qu'une recherche du type "c++"

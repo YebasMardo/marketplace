@@ -4,9 +4,10 @@ import { useUploadImageMutation } from "../../features/upload/uploadApi";
 interface ImageUploaderProps {
   images: string[];
   onChange: (images: string[]) => void;
+  folder?: string;
 }
 
-export function ImageUploader({ images, onChange }: ImageUploaderProps) {
+export function ImageUploader({ images, onChange, folder }: ImageUploaderProps) {
   const [uploadImage, { isLoading }] = useUploadImageMutation();
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -15,7 +16,7 @@ export function ImageUploader({ images, onChange }: ImageUploaderProps) {
     if (!file) return;
 
     try {
-      const result = await uploadImage(file).unwrap();
+      const result = await uploadImage({ file, folder }).unwrap();
       onChange([...images, result.url]);
     } catch {
       alert(

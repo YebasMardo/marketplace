@@ -9,9 +9,20 @@ export const categoriesApi = api.injectEndpoints({
     }),
     createCategory: builder.mutation<
       Category,
-      { name: string; parentId?: string }
+      { name: string; parentId?: string; imageUrl?: string | null }
     >({
       query: (body) => ({ url: '/categories', method: 'POST', body }),
+      invalidatesTags: ['Category'],
+    }),
+    updateCategory: builder.mutation<
+      Category,
+      { id: string; name?: string; parentId?: string; imageUrl?: string | null }
+    >({
+      query: ({ id, ...body }) => ({
+        url: `/categories/${id}`,
+        method: 'PATCH',
+        body,
+      }),
       invalidatesTags: ['Category'],
     }),
     deleteCategory: builder.mutation<void, string>({
@@ -24,5 +35,6 @@ export const categoriesApi = api.injectEndpoints({
 export const {
   useGetCategoriesQuery,
   useCreateCategoryMutation,
+  useUpdateCategoryMutation,
   useDeleteCategoryMutation,
 } = categoriesApi;

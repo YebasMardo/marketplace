@@ -1,5 +1,6 @@
 import { createBrowserRouter } from 'react-router-dom';
 import { Layout } from '../components/layout/Layout';
+import { RootLayout } from './RootLayout';
 import { ProtectedRoute } from './ProtectedRoute';
 import { RoleRoute } from './RoleRoute';
 
@@ -8,6 +9,7 @@ import { ProductList } from '../pages/public/ProductList';
 import { ProductDetail } from '../pages/public/ProductDetail';
 import { Login } from '../pages/public/Login';
 import { Register } from '../pages/public/Register';
+import { Wishlist } from '../pages/public/Wishlist';
 
 import { Cart } from '../pages/buyer/Cart';
 import { Checkout } from '../pages/buyer/Checkout';
@@ -22,48 +24,59 @@ import { MySales } from '../pages/seller/MySales';
 import { Categories } from '../pages/admin/Categories';
 
 export const router = createBrowserRouter([
-  // Auth — hors du Layout : ces écrans occupent toute la fenêtre (split-screen)
-  // et portent leur propre en-tête (le logo renvoie à l'accueil).
-  { path: '/login', element: <Login /> },
-  { path: '/register', element: <Register /> },
-
   {
-    element: <Layout />,
+    // Route technique sans chemin : elle enveloppe tout l'arbre pour que la
+    // restauration du défilement s'applique aussi aux écrans d'auth.
+    element: <RootLayout />,
     children: [
-      // Public — aucun token nécessaire (§ ordre de construction, étape 3
-      // du dossier technique : le catalogue valide le socle sans dépendre
-      // de l'auth)
-      { path: '/', element: <Home /> },
-      { path: '/products', element: <ProductList /> },
-      { path: '/products/:id', element: <ProductDetail /> },
+      // Auth — hors du Layout : ces écrans occupent toute la fenêtre
+      // (split-screen) et portent leur propre en-tête (le logo renvoie à
+      // l'accueil).
+      { path: '/login', element: <Login /> },
+      { path: '/register', element: <Register /> },
 
-      // Authentifié, tout rôle confondu
       {
-        element: <ProtectedRoute />,
+        element: <Layout />,
         children: [
-          { path: '/cart', element: <Cart /> },
-          { path: '/checkout', element: <Checkout /> },
-          { path: '/my-purchases', element: <MyPurchases /> },
-          { path: '/orders/:id', element: <OrderDetail /> },
-        ],
-      },
+          // Public — aucun token nécessaire (§ ordre de construction, étape 3
+          // du dossier technique : le catalogue valide le socle sans dépendre
+          // de l'auth)
+          { path: '/', element: <Home /> },
+          { path: '/products', element: <ProductList /> },
+          { path: '/products/:id', element: <ProductDetail /> },
+          // Publique : les favoris vivent dans le localStorage, pas côté API —
+          // un visiteur non connecté peut donc s'en constituer une.
+          { path: '/wishlist', element: <Wishlist /> },
 
-      // Vendeur uniquement
-      {
-        element: <RoleRoute allowed={['seller']} />,
-        children: [
-          { path: '/seller/dashboard', element: <Dashboard /> },
-          { path: '/seller/products', element: <MyProducts /> },
-          { path: '/seller/products/new', element: <ProductEditor /> },
-          { path: '/seller/products/:id/edit', element: <ProductEditor /> },
-          { path: '/seller/sales', element: <MySales /> },
-        ],
-      },
+          // Authentifié, tout rôle confondu
+          {
+            element: <ProtectedRoute />,
+            children: [
+              { path: '/cart', element: <Cart /> },
+              { path: '/checkout', element: <Checkout /> },
+              { path: '/my-purchases', element: <MyPurchases /> },
+              { path: '/orders/:id', element: <OrderDetail /> },
+            ],
+          },
 
-      // Admin uniquement
-      {
-        element: <RoleRoute allowed={['admin']} />,
-        children: [{ path: '/admin/categories', element: <Categories /> }],
+          // Vendeur uniquement
+          {
+            element: <RoleRoute allowed={['seller']} />,
+            children: [
+              { path: '/seller/dashboard', element: <Dashboard /> },
+              { path: '/seller/products', element: <MyProducts /> },
+              { path: '/seller/products/new', element: <ProductEditor /> },
+              { path: '/seller/products/:id/edit', element: <ProductEditor /> },
+              { path: '/seller/sales', element: <MySales /> },
+            ],
+          },
+
+          // Admin uniquement
+          {
+            element: <RoleRoute allowed={['admin']} />,
+            children: [{ path: '/admin/categories', element: <Categories /> }],
+          },
+        ],
       },
     ],
   },

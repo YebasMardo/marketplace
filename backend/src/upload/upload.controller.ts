@@ -1,6 +1,7 @@
 import {
   Controller,
   Post,
+  Query,
   UseGuards,
   UseInterceptors,
   UploadedFile,
@@ -15,16 +16,23 @@ import { Roles } from '../common/decorators/roles.decorator';
 const MAX_IMAGE_BYTES = 5 * 1024 * 1024; // 5 Mo
 const ALLOWED_MIME = /^image\/(jpeg|png|webp)$/;
 
+// Allowlist so the ?folder query param can't be used to write to an
+// arbitrary Cloudinary path.
+const FOLDERS: Record<string, string> = {
+  products: 'marketplace/products',
+  categories: 'marketplace/categories',
+};
+
 @Controller('upload')
 export class UploadController {
   constructor(private readonly uploadService: UploadService) {}
 
   // POST /upload/image — champ multipart nommé "image".
-  // Réservé aux vendeurs : sans garde, n'importe qui pourrait remplir
-  // le compte Cloudinary avec des fichiers arbitraires.
+  // Réservé aux vendeurs et admins : sans garde, n'importe qui pourrait
+  // remplir le compte Cloudinary avec des fichiers arbitraires.
   @Post('image')
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('seller')
+  @Roles('seller', 'admin')
   @UseInterceptors(
     FileInterceptor('image', {
       limits: { fileSize: MAX_IMAGE_BYTES },
@@ -43,11 +51,15 @@ export class UploadController {
       },
     }),
   )
-  async uploadImage(@UploadedFile() file: Express.Multer.File) {
+  async uploadImage(
+    @UploadedFile() file: Express.Multer.File,
+    @Query('folder') folder?: string,
+  ) {
     if (!file) {
       throw new BadRequestException('Aucun fichier reçu');
     }
-    const url = await this.uploadService.uploadImage(file);
+    const targetFolder = FOLDERS[folder ?? 'products'] ?? FOLDERS.products;
+    const url = await this.uploadService.uploadImage(file, targetFolder);
     return { url };
   }
 }

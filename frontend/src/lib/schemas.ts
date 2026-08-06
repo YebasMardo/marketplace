@@ -49,3 +49,13 @@ export const productSchema = z.discriminatedUnion('type', [
   }),
 ]);
 export type ProductFormValues = z.infer<typeof productSchema>;
+
+export const categorySchema = z.object({
+  name: z.string().min(1, 'Nom requis'),
+  parentId: z.string().optional(),
+  // nullable (pas seulement optional) : il faut pouvoir envoyer `null`
+  // explicitement pour effacer une image existante — `undefined` serait
+  // simplement omis du JSON et laisserait l'ancienne valeur en place.
+  imageUrl: z.string().url().nullable().optional(),
+});
+export type CategoryFormValues = z.infer<typeof categorySchema>;

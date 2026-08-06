@@ -4,15 +4,28 @@ import { useGetCategoriesQuery } from '../../features/categories/categoriesApi';
 import { flattenCategoryTree } from '../../features/categories/categoryTree';
 import { ProductGrid } from '../../features/products/ProductGrid';
 import { Spinner } from '../../components/ui/Spinner';
+import { ArrowRightIcon } from '../../components/ui/icons';
 
-const CARD_TILT = ['-rotate-6 -translate-y-2', 'rotate-2 translate-y-3', 'rotate-[10deg] -translate-y-6'];
+// Visuels du hero — photos Unsplash servies par leur CDN, redimensionnées
+// côté serveur (w/q) pour ne pas télécharger un 5000 px inutile.
+const unsplash = (id: string, width: number) =>
+  `https://images.unsplash.com/${id}?auto=format&fit=crop&w=${width}&q=70`;
+
+const HERO_IMAGES = {
+  // Scène de shopping en rue : volontairement neutre côté produit, le
+  // catalogue mêlant électronique, mode, montres et ebooks.
+  marketplace: unsplash('photo-1763530054704-a2216f342310', 1100),
+  // Poste de travail : illustre les produits numériques (type: 'digital').
+  digital: unsplash('photo-1511385348-a52b4a160dc2', 900),
+  // Vendeur qui prépare un colis — l'appel à ouvrir sa boutique.
+  seller: unsplash('photo-1449247666642-264389f5f5b1', 900),
+};
 
 export function Home() {
   const { data, isLoading } = useGetProductsQuery({ limit: 8 });
   const { data: categories } = useGetCategoriesQuery();
 
   const products = data?.items ?? [];
-  const heroProducts = products.slice(0, 3);
   const topCategories = categories
     ? flattenCategoryTree(categories)
         .filter(({ depth }) => depth === 0)
@@ -21,81 +34,131 @@ export function Home() {
 
   return (
     <div>
-      {/* Hero */}
-      <section className="max-w-6xl mx-auto px-4 sm:px-6 pt-14 pb-20 grid grid-cols-1 md:grid-cols-2 gap-14 items-center">
-        <div>
-          <p className="text-xs font-semibold tracking-wide uppercase text-clay mb-4">
-            Vendeurs indépendants
-          </p>
-          <h1 className="text-4xl sm:text-5xl leading-[1.08] text-ink">
-            Le marché des choses
-            <br />
-            faites <span className="text-clay">avec soin</span>.
-          </h1>
-          <p className="mt-6 text-ink-soft leading-relaxed max-w-md">
-            Produits physiques et numériques, publiés directement par les personnes
-            qui les fabriquent. Pas d'entrepôt anonyme, pas de fioritures.
-          </p>
-          <div className="mt-8 flex flex-wrap items-center gap-6">
-            <Link
-              to="/products"
-              className="bg-ink text-paper px-6 py-3 rounded-full font-medium hover:bg-ink-hover transition-[background-color,transform] duration-150 ease-out active:scale-95"
-            >
-              Explorer le catalogue
-            </Link>
-            <Link
-              to="/register"
-              className="text-sm font-medium text-ink border-b border-ink/30 hover:border-ink pb-0.5 transition-colors"
-            >
-              Vendre mes produits →
-            </Link>
-          </div>
-        </div>
+      {/* Hero — une grande tuile + deux petites, comme sur la maquette.
+          Sous lg, tout retombe en pile verticale. */}
+      <section className="max-w-6xl mx-auto px-4 sm:px-6 pt-6 pb-14">
+        <div className="grid gap-4 lg:h-[30rem] lg:grid-cols-[1.28fr_1fr] lg:grid-rows-2">
+          {/* Tuile principale : la promesse du marché */}
+          <article className="group relative min-h-[24rem] overflow-hidden rounded-3xl bg-ink lg:row-span-2">
+            <img
+              src={HERO_IMAGES.marketplace}
+              alt=""
+              fetchPriority="high"
+              className="absolute inset-0 h-full w-full object-cover transition-transform duration-[600ms] ease-out group-hover:scale-[1.03]"
+            />
+            {/* Voile dégradé : sans lui le texte blanc passe sous le seuil de
+                contraste dès que la photo s'éclaircit. Le second calque assombrit
+                uniformément — le dégradé seul ne suffit pas sur une photo très
+                contrastée comme celle-ci. */}
+            <div className="absolute inset-0 bg-ink/25" />
+            <div className="absolute inset-0 bg-gradient-to-r from-ink via-ink/90 to-ink/25" />
 
-        <div className="relative h-72 sm:h-80 hidden sm:block">
-          {heroProducts.length > 0 ? (
-            heroProducts.map((product, i) => (
+            <div className="relative flex h-full flex-col justify-between p-7 sm:p-9">
+              <div className="max-w-[21rem]">
+                <p className="text-xs font-semibold uppercase tracking-wide text-paper/70">
+                  Vendeurs indépendants
+                </p>
+                <h1 className="mt-3 text-3xl leading-[1.1] text-paper sm:text-[2.3rem]">
+                  Tout ce qu'il vous faut, vendu en direct.
+                </h1>
+                <Link
+                  to="/products"
+                  className="mt-7 inline-flex items-center gap-2 rounded-full bg-paper px-5 py-2.5 text-sm font-semibold text-ink transition-transform duration-150 ease-out hover:bg-paper-raised active:scale-95"
+                >
+                  Explorer le catalogue
+                  <ArrowRightIcon className="h-4 w-4" />
+                </Link>
+              </div>
+
+              <p className="font-display text-4xl font-semibold tracking-tight text-paper sm:text-5xl">
+                Prix nets.
+              </p>
+            </div>
+          </article>
+
+          {/* Tuile claire : les produits numériques (type: 'digital') */}
+          <article className="group relative min-h-[13rem] overflow-hidden rounded-3xl bg-paper-sunken">
+            <img
+              src={HERO_IMAGES.digital}
+              alt=""
+              className="absolute inset-0 h-full w-full object-cover object-right transition-transform duration-[600ms] ease-out group-hover:scale-[1.03]"
+            />
+            <div className="absolute inset-0 bg-gradient-to-r from-paper-sunken via-paper-sunken/90 to-paper-sunken/0" />
+
+            <div className="relative flex h-full max-w-[16rem] flex-col justify-center p-7">
+              <p className="text-xs font-semibold uppercase tracking-wide text-ink-faint">
+                Produits numériques
+              </p>
+              <h2 className="mt-2 text-xl leading-snug text-ink">
+                Payez, téléchargez. Pas d'attente.
+              </h2>
               <Link
-                key={product._id}
-                to={`/products/${product._id}`}
-                className={`absolute w-44 sm:w-48 bg-paper-raised border border-line rounded-xl shadow-[0_20px_40px_-16px_rgba(17,17,17,0.25)] overflow-hidden transition-transform duration-200 ease-out hover:-translate-y-1 ${CARD_TILT[i]}`}
-                style={{ left: `${i * 22}%`, zIndex: i }}
+                to="/products"
+                className="mt-5 inline-flex w-fit items-center gap-2 rounded-full bg-ink px-4 py-2 text-sm font-semibold text-paper transition-[background-color,transform] duration-150 ease-out hover:bg-ink-hover active:scale-95"
               >
-                <div className="aspect-square bg-paper-sunken">
-                  {product.images[0] && (
-                    <img
-                      src={product.images[0]}
-                      alt={product.title}
-                      className="w-full h-full object-cover"
-                    />
-                  )}
-                </div>
-                <div className="p-3">
-                  <p className="text-sm font-medium text-ink truncate">{product.title}</p>
-                  <p className="text-sm text-ink-faint">{product.price.toFixed(2)} €</p>
-                </div>
+                Découvrir
+                <ArrowRightIcon className="h-4 w-4" />
               </Link>
-            ))
-          ) : (
-            <div className="absolute inset-0 rounded-2xl bg-paper-sunken border border-line" />
-          )}
+            </div>
+          </article>
+
+          {/* Tuile accent : l'appel aux vendeurs */}
+          <article className="group relative min-h-[13rem] overflow-hidden rounded-3xl bg-clay">
+            <img
+              src={HERO_IMAGES.seller}
+              alt=""
+              className="absolute inset-0 h-full w-full object-cover transition-transform duration-[600ms] ease-out group-hover:scale-[1.03]"
+            />
+            <div className="absolute inset-0 bg-gradient-to-r from-clay-dark via-clay-dark/85 to-clay-dark/15" />
+
+            <div className="relative flex h-full max-w-[17rem] flex-col justify-center p-7">
+              <p className="text-xs font-semibold uppercase tracking-wide text-paper/70">
+                Ouvrez votre boutique
+              </p>
+              <h2 className="mt-2 text-xl leading-snug text-paper">
+                Vendez vos créations en quelques minutes.
+              </h2>
+              <Link
+                to="/register"
+                className="mt-5 inline-flex w-fit items-center gap-2 rounded-full bg-paper px-4 py-2 text-sm font-semibold text-ink transition-transform duration-150 ease-out hover:bg-paper-raised active:scale-95"
+              >
+                Créer ma boutique
+                <ArrowRightIcon className="h-4 w-4" />
+              </Link>
+            </div>
+          </article>
         </div>
       </section>
 
       {/* Categories */}
       {topCategories.length > 0 && (
         <section className="max-w-6xl mx-auto px-4 sm:px-6 pb-16">
-          <h2 className="text-sm font-semibold tracking-wide uppercase text-ink-faint mb-5">
+          <h2 className="text-sm font-semibold tracking-wide uppercase text-ink-faint mb-6">
             Parcourir par catégorie
           </h2>
-          <div className="flex flex-wrap gap-3">
+          <div className="flex gap-6 sm:gap-8 overflow-x-auto pb-2 -mx-1 px-1">
             {topCategories.map(({ category }) => (
               <Link
                 key={category._id}
                 to={`/products?categoryId=${category._id}`}
-                className="px-4 py-2 rounded-full border border-line text-sm font-medium text-ink-soft hover:border-ink hover:text-ink transition-colors"
+                className="flex flex-col items-center gap-3 shrink-0 group"
               >
-                {category.name}
+                <span className="h-24 w-24 sm:h-28 sm:w-28 rounded-full bg-paper-sunken overflow-hidden flex items-center justify-center ring-1 ring-transparent group-hover:ring-ink/20 transition-shadow">
+                  {category.imageUrl ? (
+                    <img
+                      src={category.imageUrl}
+                      alt={category.name}
+                      className="h-[70%] w-[70%] object-contain"
+                    />
+                  ) : (
+                    <span className="text-2xl font-semibold text-ink-faint">
+                      {category.name.charAt(0).toUpperCase()}
+                    </span>
+                  )}
+                </span>
+                <span className="text-sm font-medium text-ink-soft group-hover:text-ink transition-colors text-center whitespace-nowrap">
+                  {category.name}
+                </span>
               </Link>
             ))}
           </div>
