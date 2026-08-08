@@ -16,9 +16,13 @@ import {
 } from '../../components/layout/AuthLayout';
 import { SELLER_SLIDES } from './authShowcase';
 
+/* Même matière que les champs (blanc, bordure franche) pour que le groupe de
+   rôles se lise comme la suite du formulaire et non comme un encart à part. */
 const roleOptionClass =
-  'flex-1 flex items-center justify-center gap-2 rounded-xl border border-line-strong bg-paper-raised/70 py-3 text-sm font-medium text-ink-soft cursor-pointer select-none ' +
-  'transition-colors has-[:checked]:border-clay has-[:checked]:bg-clay-soft has-[:checked]:text-clay-dark';
+  'flex-1 flex items-center justify-center gap-2 rounded-xl border border-line-strong bg-paper-raised py-3 text-sm font-medium text-ink-soft cursor-pointer select-none ' +
+  'shadow-[0_1px_2px_rgba(17,17,17,0.04)] transition-[border-color,background-color,color,transform] duration-150 ease-out ' +
+  'hover:border-ink-faint/60 active:scale-[0.985] motion-reduce:active:scale-100 ' +
+  'has-[:checked]:border-clay has-[:checked]:bg-clay-soft has-[:checked]:text-clay-dark';
 
 export function Register() {
   const dispatch = useAppDispatch();

@@ -102,8 +102,8 @@
   <div class="meta">
     NestJS 11 &nbsp;·&nbsp; MongoDB (Mongoose 9) &nbsp;·&nbsp; Redis 7<br>
     Stripe &nbsp;·&nbsp; Cloudinary &nbsp;·&nbsp; Resend<br><br>
-    Document généré le 3 août 2026<br>
-    Branche <code>main</code> — 3 commits + travaux en cours
+    Document généré le 3 août 2026 · mis à jour le 7 août 2026<br>
+    Branche <code>main</code> — 9 commits, frontend en cours de construction
   </div>
 </div>
 
@@ -116,9 +116,29 @@
       les règles métier, les transitions de statut — pour ne pas construire un frontend basé sur des
       suppositions.</li>
   <li><strong>Un agent IA</strong> à qui vous confierez la construction du frontend. Les sections 5
-      (référence API), 7 (corrections) et 8 (structure recommandée) sont écrites pour être données
-      telles quelles comme contexte.</li>
+      (référence API) et 7 (corrections) sont écrites pour être données telles quelles comme contexte.</li>
 </ul>
+<div class="box info">
+  <span class="t">Mise à jour du 6 août 2026</span>
+  Ce document décrivait à l'origine un backend prêt à recevoir un frontend qui n'existait pas
+  encore — la section 8 proposait donc une structure. Le frontend a depuis été largement entamé.
+  Son état réel (ce qui est câblé, ce qui reste une coquille, ce qui manque) est désormais décrit
+  dans <code>frontend-dossier-technique.html</code>, qui remplace l'ancienne section 8 comme
+  référence pour la suite du travail. Les sections 1 à 7 ci-dessous décrivent l'API et restent
+  à jour.
+</div>
+<div class="box info">
+  <span class="t">Mise à jour du 7 août 2026 — coordonnées de livraison</span>
+  Le checkout collecte désormais les coordonnées de l'acheteur, ce qui change le <strong>contrat
+  de <code>POST /orders/checkout</code></strong> (§5.6) : le corps attend un objet
+  <code>shipping</code> en plus de <code>paymentMethod</code>, et <code>forbidNonWhitelisted</code>
+  étant actif, un appel à l'ancien format échoue en <strong>400</strong>. Le modèle
+  <code>Order</code> gagne un sous-document <code>ShippingDetails</code> (§3.4) et
+  <code>GET /cart</code> expose le <code>type</code> de chaque ligne (§5.5), afin que le frontend
+  sache quand exiger une adresse postale. Règle centrale : <strong>le contact est toujours exigé,
+  l'adresse postale seulement si le panier contient un article physique</strong> — une commande
+  numérique n'a rien à faire livrer.
+</div>
 <div class="box ok">
   <span class="t">État du backend</span>
   L'audit initial avait relevé huit points problématiques — dont trois bloquants pour le frontend
@@ -136,7 +156,7 @@
   <li><a href="#s3">Modèles de données</a>
     <ol>
       <li>User · Category · Product</li>
-      <li>Order &amp; OrderItem</li>
+      <li>Order, OrderItem &amp; ShippingDetails</li>
       <li>Le panier : pourquoi il vit dans Redis</li>
     </ol>
   </li>
@@ -144,7 +164,7 @@
   <li><a href="#s5">Référence complète de l'API</a></li>
   <li><a href="#s6">Les flux métier de bout en bout</a></li>
   <li><a href="#s7">Corrections appliquées</a></li>
-  <li><a href="#s8">Structure de frontend recommandée</a></li>
+  <li><a href="#s8">État du frontend &amp; suite</a></li>
 </ol>
 </div>
 
@@ -399,7 +419,7 @@ fileKey?: string;</code></pre>
   est actif.
 </p>
 
-<h3 class="newpage">3.4 Order &amp; OrderItem</h3>
+<h3 class="newpage">3.4 Order, OrderItem &amp; ShippingDetails</h3>
 <p>
   Une commande représente <strong>un vendeur et une seule nature de produit</strong>. C'est la
   décision structurante de tout le système de commandes : un panier contenant des articles de
@@ -440,8 +460,38 @@ fileKey?: string;</code></pre>
     <tr><td><code>paymentMethod</code></td><td>enum</td><td><code>stripe</code> | <code>cash</code></td></tr>
     <tr><td><code>stripePaymentIntentId</code></td><td>string?</td><td>Renseigné à la création de l'intent</td></tr>
     <tr><td><code>status</code></td><td>enum</td><td>6 valeurs — défaut <code>pending_payment</code></td></tr>
+    <tr><td><code>shipping</code></td><td>ShippingDetails?</td><td>Coordonnées saisies au checkout — voir ci-dessous</td></tr>
   </tbody>
 </table>
+
+<h4>ShippingDetails — coordonnées de livraison</h4>
+<p>
+  Sous-document <code>@Schema({ _id: false })</code>, pour la même raison qu'<code>OrderItem</code> :
+  aucune identité propre. Renseigné par <code>OrdersService.checkout()</code> sur <em>chacune</em>
+  des commandes issues d'un même panier — chaque commande porte donc sa propre copie.
+</p>
+<table>
+  <thead><tr><th style="width:24%">Champ</th><th style="width:24%">Type</th><th>Remarques</th></tr></thead>
+  <tbody>
+    <tr><td><code>fullName</code></td><td>string</td><td>requis</td></tr>
+    <tr><td><code>email</code></td><td>string</td><td>requis, minuscules. Contact de commande — <strong>pas</strong> le destinataire de la livraison numérique, qui reste l'email du compte</td></tr>
+    <tr><td><code>phone</code></td><td>string</td><td>requis</td></tr>
+    <tr><td colspan="3" style="background:#edf2f7;font-weight:600;padding-top:7px">Réservé aux commandes physiques</td></tr>
+    <tr><td><code>country</code></td><td>string?</td><td rowspan="4">Absents des commandes numériques : il n'y a rien à expédier. Optionnels au niveau du schéma, mais <strong>exigés par le service</strong> dès qu'un article physique est présent</td></tr>
+    <tr><td><code>city</code></td><td>string?</td></tr>
+    <tr><td><code>addressLine</code></td><td>string?</td></tr>
+    <tr><td><code>postalCode</code></td><td>string?</td></tr>
+  </tbody>
+</table>
+<div class="box warn">
+  <span class="t">Pourquoi <code>shipping</code> n'est-il pas <code>required</code> ?</span>
+  Parce que les commandes créées avant l'ajout du formulaire de livraison n'en ont pas, et que
+  Mongoose valide le document <em>entier</em> à chaque <code>save()</code> : le rendre obligatoire
+  ferait échouer <code>cancel()</code>, <code>markAsShipped()</code> et <code>markAsPaid()</code>
+  sur ces commandes-là. Toute lecture doit donc tester sa présence avant affichage. Un
+  <code>required: true</code> ne redeviendra envisageable qu'après une migration des documents
+  existants.
+</div>
 
 <h3>3.5 Le panier : pourquoi il vit dans Redis</h3>
 <p>
@@ -718,9 +768,11 @@ fileKey?: string;</code></pre>
   <thead><tr><th style="width:8%">Méthode</th><th style="width:22%">Route</th><th>Corps &amp; réponse</th></tr></thead>
   <tbody>
     <tr><td><span class="badge b-get">GET</span></td><td><code>/cart</code></td>
-        <td>→ <code>{ items: [{ productId, quantity, title, price, originalPrice?, images, subtotal }], total }</code>.
+        <td>→ <code>{ items: [{ productId, quantity, title, price, originalPrice?, images, subtotal, type }], total }</code>.
             <code>price</code> est le montant <strong>réellement facturé</strong> ;
-            <code>originalPrice</code> n'apparaît qu'en cas de promotion, pour le prix barré</td></tr>
+            <code>originalPrice</code> n'apparaît qu'en cas de promotion, pour le prix barré ;
+            <code>type</code> (<code>physical</code> | <code>digital</code>) permet au checkout de
+            savoir s'il doit exiger une adresse postale</td></tr>
     <tr><td><span class="badge b-post">POST</span></td><td><code>/cart/items</code></td>
         <td><code>{ productId, quantity ≥ 1 }</code>. Quantité <strong>ajoutée</strong> à
             l'existante. <strong>404</strong> si le produit n'existe pas. Renvoie le panier complet</td></tr>
@@ -747,9 +799,17 @@ fileKey?: string;</code></pre>
   <thead><tr><th style="width:8%">Méthode</th><th style="width:24%">Route</th><th style="width:13%">Rôle</th><th>Comportement</th></tr></thead>
   <tbody>
     <tr><td><span class="badge b-post">POST</span></td><td><code>/orders/checkout</code></td><td>—</td>
-        <td><code>{ paymentMethod: 'stripe' | 'cash' }</code> → <strong>un tableau</strong> de commandes.
-            <strong>400</strong> si le panier est vide ou si le stock est insuffisant
-            (message « Stock insuffisant pour « … » »). Réserve le stock puis vide le panier</td></tr>
+        <td><code>{ paymentMethod: 'stripe' | 'cash', shipping: {…} }</code> → <strong>un tableau</strong> de commandes.
+            <code>shipping</code> exige <code>fullName</code>, <code>email</code>, <code>phone</code> ;
+            <code>country</code>, <code>city</code>, <code>addressLine</code> et <code>postalCode</code>
+            sont facultatifs pour le DTO mais <strong>obligatoires dès que le panier contient un
+            article physique</strong> (le DTO est validé avant lecture du panier, la règle est donc
+            appliquée par le service).
+            <strong>400</strong> si le panier est vide, si le stock est insuffisant
+            (message « Stock insuffisant pour « … » ») ou si l'adresse postale manque alors qu'il y a
+            du physique. Réserve le stock puis vide le panier.
+            Les champs postaux vides doivent être <strong>omis</strong>, pas envoyés à <code>''</code> :
+            <code>@IsOptional()</code> ne neutralise la validation que pour <code>undefined</code>/<code>null</code></td></tr>
     <tr><td><span class="badge b-get">GET</span></td><td><code>/orders/my-purchases</code></td><td>—</td>
         <td>Mes achats, triés du plus récent au plus ancien</td></tr>
     <tr><td><span class="badge b-get">GET</span></td><td><code>/orders/my-sales</code></td>
@@ -1142,167 +1202,44 @@ items.push({
   de catégorie bloquée dans les deux cas de figure.
 </p>
 
-<h2 id="s8" class="newpage">8. Structure de frontend recommandée</h2>
+<h2 id="s8" class="newpage">8. État du frontend &amp; suite</h2>
 
-<h3>Ce qui est déjà installé</h3>
 <p>
-  <code>frontend/src/</code> ne contient aujourd'hui que le squelette Vite
-  (<code>App.tsx</code>, <code>main.tsx</code>, deux CSS, des assets). Les dépendances, elles,
-  sont déjà choisies — et bien choisies :
+  Cette section proposait à l'origine une structure de frontend, à un moment où
+  <code>frontend/src/</code> ne contenait que le squelette Vite par défaut. Ce n'est plus le
+  cas : l'authentification, le catalogue public, la gestion des catégories et la gestion des
+  produits côté vendeur sont construits et câblés contre cette API. Le détail complet — fichier
+  par fichier, ce qui fonctionne, ce qui est une coquille vide, ce qui manque encore, et les
+  conventions déjà en place à respecter pour la suite — vit désormais dans son propre document :
 </p>
-<table>
-  <thead><tr><th style="width:32%">Paquet</th><th>Rôle attendu</th></tr></thead>
-  <tbody>
-    <tr><td>React 19 + Vite 8</td><td>Socle et outillage de build</td></tr>
-    <tr><td><code>@reduxjs/toolkit</code> + <code>react-redux</code></td><td>État global — <strong>et RTK Query pour l'appel API</strong></td></tr>
-    <tr><td><code>react-router-dom</code> 7</td><td>Routage et protection des routes</td></tr>
-    <tr><td><code>react-hook-form</code> + <code>zod</code> + <code>@hookform/resolvers</code></td><td>Formulaires et validation client</td></tr>
-    <tr><td>Tailwind CSS 4 (<code>@tailwindcss/vite</code>)</td><td>Styles</td></tr>
-  </tbody>
-</table>
+
 <div class="box info">
-  <span class="t">Recommandation : utilisez RTK Query, pas des <code>fetch</code> manuels</span>
-  Redux Toolkit est déjà installé, et RTK Query en fait partie sans dépendance supplémentaire.
-  Il vous donne le cache, la déduplication des requêtes, l'invalidation par tags et les états
-  de chargement — tout ce que vous réécririez à la main autrement. Un point particulièrement
-  pertinent ici : les routes du panier renvoyant l'état complet, vous pouvez mettre le cache à
-  jour directement dans <code>onQueryStarted</code> au lieu d'invalider et recharger.
+  <span class="t"><code>docs/frontend-dossier-technique.html</code></span>
+  À lire avant toute reprise du travail sur le panier, les commandes ou les paiements. Il
+  documente notamment que <code>features/cart/cartApi.ts</code> n'a aujourd'hui qu'une lecture
+  seule (<code>getCart</code>) malgré les cinq routes disponibles ci-dessus, qu'aucune couche
+  <code>ordersApi</code>/<code>paymentsApi</code> n'existe encore, et que les boutons « Ajouter
+  au panier » du catalogue sont déjà présents visuellement mais non branchés.
 </div>
 
-<h3>Arborescence proposée</h3>
-<pre><code>frontend/src/
-├── app/
-│   ├── store.ts                 configureStore + middleware RTK Query
-│   └── hooks.ts                 useAppDispatch / useAppSelector typés
-│
-├── features/                    une tranche verticale par domaine backend
-│   ├── auth/       authApi.ts, authSlice.ts, LoginForm, RegisterForm
-│   ├── products/   productsApi.ts, ProductCard, ProductGrid, ProductForm
-│   ├── categories/ categoriesApi.ts, CategoryTree, CategoryFilter
-│   ├── cart/       cartApi.ts, CartDrawer, CartItemRow
-│   ├── orders/     ordersApi.ts, OrderCard, OrderStatusBadge, OrderTimeline
-│   └── payments/   paymentsApi.ts, StripeCheckout, CashPaymentNotice
-│
-├── components/                  UI réutilisable, sans logique métier
-│   ├── ui/         Button, Input, Modal, Badge, Spinner, EmptyState
-│   └── layout/     Header, Footer, Sidebar, RoleNav
-│
-├── routes/
-│   ├── router.tsx               createBrowserRouter
-│   ├── ProtectedRoute.tsx       exige un token
-│   └── RoleRoute.tsx            exige un rôle précis
-│
-├── pages/
-│   ├── public/     Home, ProductList, ProductDetail, Login, Register
-│   ├── buyer/      Cart, Checkout, MyPurchases, OrderDetail
-│   ├── seller/     Dashboard, MyProducts, ProductEditor, MySales
-│   └── admin/      Categories
-│
-├── lib/
-│   ├── apiClient.ts             baseQuery : URL de base + en-tête Bearer
-│   ├── schemas.ts               schémas Zod alignés sur les DTO backend
-│   └── orderStatus.ts           libellés FR + couleurs par statut
-│
-└── types/api.ts                 types TS miroirs des schémas Mongoose</code></pre>
-
-<h3 class="newpage">Points de câblage à ne pas manquer</h3>
-
-<h4>1. L'injection du token</h4>
-<p>
-  Centralisez-la dans le <code>baseQuery</code> de RTK Query, jamais appel par appel :
-</p>
-<pre><code>const baseQuery = fetchBaseQuery({
-  baseUrl: import.meta.env.VITE_API_URL,   // http://localhost:3000
-  prepareHeaders: (headers, { getState }) => {
-    const token = (getState() as RootState).auth.token;
-    if (token) headers.set('Authorization', `Bearer ${token}`);
-    return headers;
-  },
-});</code></pre>
-
-<h4>2. La déconnexion globale sur 401</h4>
-<p>
-  Sans refresh token, un 401 signifie toujours « session finie ». Enveloppez le
-  <code>baseQuery</code> pour purger l'état et rediriger :
-</p>
-<pre><code>const baseQueryWithAuth: BaseQueryFn = async (args, api, extra) => {
-  const result = await baseQuery(args, api, extra);
-  if (result.error?.status === 401) {
-    api.dispatch(logout());          // vide le store + localStorage
-  }
-  return result;
-};</code></pre>
-
-<h4>3. Trois espaces distincts, pilotés par le rôle</h4>
-<p>
-  <code>GET /auth/me</code> renvoie le rôle. Faites-en la clé de votre navigation : un acheteur
-  ne doit pas voir « Mes ventes », un vendeur doit avoir un tableau de bord produits, l'admin
-  la gestion des catégories. <code>RoleRoute</code> protège les routes, mais masquez aussi les
-  liens — une route protégée dont le lien est visible est une mauvaise expérience.
-</p>
-
-<h4>4. Le formulaire produit est le morceau le plus délicat</h4>
-<p>
-  Il doit refléter la validation conditionnelle du backend. Avec Zod, un
-  <code>discriminatedUnion</code> exprime exactement la même règle :
-</p>
-<pre><code>const productSchema = z.discriminatedUnion('type', [
-  z.object({
-    type: z.literal('physical'),
-    stock: z.number().int().min(0),
-    weightGrams: z.number().int().min(0),
-    /* ...champs communs */
-  }),
-  z.object({
-    type: z.literal('digital'),
-    fileKey: z.string().min(1),
-    downloadLimit: z.number().int().min(1),
-    /* ...champs communs */
-  }),
-]);</code></pre>
-<p class="small">
-  Et n'envoyez que les champs du variant actif : <code>forbidNonWhitelisted</code> rejettera
-  un <code>stock</code> traînant sur un produit numérique.
-</p>
-
-<h4>5. L'upload d'image précède la création du produit</h4>
-<p>
-  Le flux est en deux temps : <code>POST /upload/image</code> renvoie une URL, que vous placez
-  ensuite dans le tableau <code>images</code> du <code>POST /products</code>. Prévoyez un
-  composant d'upload autonome, avec prévisualisation et suppression, dont la valeur de sortie
-  est un <code>string[]</code> d'URLs.
-</p>
-
-<h4>6. Le checkout renvoie un tableau</h4>
-<p>
-  Rappel de la section 6.1 : ne codez pas <code>const order = response[0]</code>. Après
-  <code>POST /orders/checkout</code>, redirigez vers un récapitulatif listant
-  <strong>toutes</strong> les commandes créées, avec pour chacune son montant et son action de
-  paiement.
-</p>
-
-<h3>Ordre de construction suggéré</h3>
-<ol>
-  <li><strong>Socle :</strong> store Redux, <code>baseQuery</code> avec token, router,
-      <code>ProtectedRoute</code>, layout et navigation.</li>
-  <li><strong>Authentification :</strong> inscription, connexion, <code>/auth/me</code> au
-      démarrage, déconnexion. C'est la porte d'entrée de tout le reste.</li>
-  <li><strong>Catalogue public :</strong> liste des produits, filtre par catégorie, page produit.
-      Aucun token nécessaire — vous validez le socle sans dépendre de l'auth.</li>
-  <li><strong>Panier :</strong> ajout, modification, suppression, badge de quantité.</li>
-  <li><strong>Espace vendeur :</strong> mes produits, création avec upload, publication.</li>
-  <li><strong>Commandes :</strong> checkout, mes achats, mes ventes, transitions de statut.</li>
-  <li><strong>Paiement Stripe :</strong> en dernier — c'est le plus dépendant de tout le reste,
-      et le plus pénible à tester.</li>
-</ol>
+<p>Deux rappels de cette section qui restent valables et qu'un futur agent doit garder en tête :</p>
+<ul>
+  <li><strong>Le checkout renvoie un tableau de commandes</strong>, jamais une seule (§6.1) — un
+      panier avec plusieurs vendeurs, ou un même vendeur avec du physique et du numérique,
+      produit plusieurs <code>Order</code> en un seul appel à <code>POST /orders/checkout</code>.</li>
+  <li><strong>Les routes du panier renvoient l'état complet</strong> à chaque mutation (§5.5) —
+      un futur câblage de <code>addItem</code>/<code>updateItem</code>/<code>removeItem</code>
+      devrait patcher le cache RTK Query directement plutôt qu'invalider et recharger.</li>
+</ul>
 
 <div class="box ok" style="margin-top:20px">
   <span class="t">En résumé</span>
   Le backend est solidement structuré : séparation nette des modules, validation stricte,
   règles métier centralisées au bon endroit, instantanés de commande bien pensés, idempotence
   du webhook gérée. Les huit points relevés à l'audit ont tous été corrigés et vérifiés
-  (section 7) — aucun ne remettait en cause l'architecture. Le contrat d'API est stable :
-  vous pouvez attaquer le frontend dans l'ordre proposé ci-dessus.
+  (section 7) — aucun ne remettait en cause l'architecture. Le contrat d'API n'a connu depuis
+  qu'une seule évolution, documentée ci-dessus : la saisie des coordonnées de livraison au
+  checkout (7 août 2026). La suite du frontend peut s'appuyer dessus sans réserve.
 </div>
 
 <div class="box warn" style="margin-top:14px">
@@ -1310,10 +1247,22 @@ items.push({
   Deux points connus n'ont volontairement pas été traités, car ils dépassent la correction de
   bugs. <strong>Les liens de téléchargement numériques</strong> (§6.5) exposent toujours le
   <code>fileKey</code> brut : il faudrait des URLs signées à durée limitée et un compteur
-  appliquant <code>downloadLimit</code>. <strong>Les frais de port</strong> sont désormais
-  saisissables via <code>shippingOptions</code>, mais ne sont ni choisis au checkout ni ajoutés
-  au <code>total</code> — le modèle de commande n'a pas de champ pour cela. Les deux méritent
-  d'être décidés avant la mise en production.
+  appliquant <code>downloadLimit</code>. <strong>Les frais de port</strong> sont saisissables via
+  <code>shippingOptions</code>, mais ne sont toujours ni choisis au checkout ni ajoutés au
+  <code>total</code> : l'ajout de <code>shipping</code> (7 août 2026) a réglé <em>où</em> livrer,
+  pas <em>combien</em> facturer pour le faire. Les deux méritent d'être décidés avant la mise en
+  production.
+</div>
+
+<div class="box info" style="margin-top:14px">
+  <span class="t">Également non traité par la mise à jour du 7 août 2026</span>
+  L'adresse collectée n'est <strong>ni transmise à Stripe</strong> (<code>paymentIntents.create()</code>
+  ne reçoit toujours que <code>amount</code>, <code>currency</code> et <code>metadata</code> — donc
+  ni <code>shipping</code> ni <code>receipt_email</code>), <strong>ni envoyée par email au vendeur</strong> :
+  il n'existe toujours aucun email de commande hormis la livraison numérique (§4). Le vendeur
+  consulte l'adresse dans l'interface, via <code>GET /orders/:id</code>. Enfin, elle n'est
+  <strong>pas mémorisée sur le profil</strong> — le modèle <code>User</code> est inchangé et
+  chaque checkout la redemande.
 </div>
 
 </body>

@@ -59,3 +59,28 @@ export const categorySchema = z.object({
   imageUrl: z.string().url().nullable().optional(),
 });
 export type CategoryFormValues = z.infer<typeof categorySchema>;
+
+// Fabrique plutôt qu'un schéma constant : l'adresse postale n'est exigée que
+// si le panier contient au moins un article physique, ce que seul le
+// composant sait au moment du rendu. Miroir de la règle appliquée par
+// OrdersService.checkout() — le backend reste l'autorité, ceci évite
+// simplement un aller-retour pour une erreur évidente.
+export const makeCheckoutSchema = (requiresAddress: boolean) => {
+  const postal = requiresAddress
+    ? z.string().min(1, 'Champ requis')
+    : z.string().optional();
+
+  return z.object({
+    paymentMethod: z.enum(['stripe', 'cash']),
+    shipping: z.object({
+      fullName: z.string().min(1, 'Nom requis'),
+      email: z.string().email('Email invalide'),
+      phone: z.string().min(1, 'Téléphone requis'),
+      country: postal,
+      city: postal,
+      addressLine: postal,
+      postalCode: postal,
+    }),
+  });
+};
+export type CheckoutFormValues = z.infer<ReturnType<typeof makeCheckoutSchema>>;

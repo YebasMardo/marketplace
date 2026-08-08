@@ -60,6 +60,9 @@ export interface CartItem {
   originalPrice?: number; // présent uniquement si une promo s'applique
   images: string[];
   subtotal: number;
+  // Permet au checkout de savoir s'il doit exiger une adresse postale :
+  // un panier 100 % numérique n'a rien à faire livrer.
+  type: FulfillmentType;
 }
 
 export interface Cart {
@@ -87,6 +90,19 @@ export interface OrderItem {
   quantity: number;
 }
 
+// Coordonnées figées au checkout. Les champs postaux ne sont renseignés que
+// sur les commandes physiques — une commande numérique ne porte que le
+// contact. Voir ShippingDetails côté backend.
+export interface ShippingDetails {
+  fullName: string;
+  email: string;
+  phone: string;
+  country?: string;
+  city?: string;
+  addressLine?: string;
+  postalCode?: string;
+}
+
 export interface Order {
   _id: string;
   buyerId: string;
@@ -98,4 +114,7 @@ export interface Order {
   stripePaymentIntentId?: string;
   status: OrderStatus;
   createdAt: string;
+  // Optionnel : les commandes créées avant l'ajout du formulaire de
+  // livraison n'en ont pas. Toujours tester sa présence avant affichage.
+  shipping?: ShippingDetails;
 }

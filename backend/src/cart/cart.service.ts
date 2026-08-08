@@ -46,6 +46,7 @@ export class CartService {
       originalPrice?: number;
       images: string[];
       subtotal: number;
+      type: 'physical' | 'digital';
     }[] = [];
     let cartChanged = false;
 
@@ -67,6 +68,9 @@ export class CartService {
           ...(hasPromo ? { originalPrice: product.price } : {}),
           images: product.images,
           subtotal: unitPrice * cart[productId],
+          // Le front en a besoin pour savoir s'il doit exiger une adresse
+          // postale au checkout — un panier 100 % numérique n'en demande pas.
+          type: product.type,
         });
       } catch {
         delete cart[productId];

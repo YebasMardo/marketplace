@@ -1,0 +1,697 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Marketplace — Dossier technique du frontend</title>
+<style>
+  @page { size: A4; margin: 16mm 14mm; }
+
+  * { box-sizing: border-box; }
+  body {
+    font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+    font-size: 10pt; line-height: 1.55; color: #1a1d23; margin: 0;
+    -webkit-print-color-adjust: exact; print-color-adjust: exact;
+  }
+
+  h1 { font-size: 22pt; margin: 0 0 4px; letter-spacing: -.5px; }
+  h2 {
+    font-size: 15pt; margin: 26px 0 10px; padding-bottom: 5px;
+    border-bottom: 2px solid #2b6cb0; color: #1a365d;
+    break-after: avoid; page-break-after: avoid;
+  }
+  h3 {
+    font-size: 11.5pt; margin: 18px 0 7px; color: #2b6cb0;
+    break-after: avoid; page-break-after: avoid;
+  }
+  h4 { font-size: 10pt; margin: 13px 0 5px; color: #2d3748; break-after: avoid; }
+  p { margin: 7px 0; }
+  ul, ol { margin: 7px 0; padding-left: 20px; }
+  li { margin: 3px 0; }
+
+  code {
+    font-family: "Cascadia Mono", Consolas, monospace; font-size: 8.8pt;
+    background: #eef1f6; padding: 1px 4px; border-radius: 3px; color: #1a365d;
+  }
+  pre {
+    font-family: "Cascadia Mono", Consolas, monospace; font-size: 8.2pt;
+    background: #f7f9fc; border: 1px solid #dde3ec; border-left: 3px solid #2b6cb0;
+    padding: 9px 11px; border-radius: 4px; line-height: 1.45;
+    white-space: pre; overflow-x: auto; break-inside: avoid;
+  }
+  pre code { background: none; padding: 0; font-size: inherit; }
+
+  table {
+    width: 100%; border-collapse: collapse; margin: 9px 0; font-size: 8.6pt;
+    break-inside: auto;
+  }
+  th {
+    background: #1a365d; color: #fff; text-align: left; padding: 6px 8px;
+    font-weight: 600; font-size: 8.4pt;
+  }
+  td { padding: 5px 8px; border-bottom: 1px solid #e2e8f0; vertical-align: top; }
+  tr { break-inside: avoid; page-break-inside: avoid; }
+  tbody tr:nth-child(even) { background: #f8fafc; }
+
+  .cover {
+    text-align: center; padding-top: 55mm;
+    break-after: page; page-break-after: always;
+  }
+  .cover .sub { font-size: 13pt; color: #4a5568; margin-top: 8px; }
+  .cover .meta { margin-top: 42mm; font-size: 9.5pt; color: #718096; line-height: 1.9; }
+  .cover .rule { width: 60px; height: 3px; background: #2b6cb0; margin: 20px auto; }
+
+  .badge {
+    display: inline-block; padding: 1px 6px; border-radius: 3px;
+    font-size: 7.6pt; font-weight: 700; letter-spacing: .3px; white-space: nowrap;
+  }
+  .b-done  { background: #c6f6d5; color: #22543d; }
+  .b-stub  { background: #feebc8; color: #7b341e; }
+  .b-none  { background: #fed7d7; color: #742a2a; }
+  .b-part  { background: #bee3f8; color: #2a4365; }
+
+  .box {
+    padding: 10px 13px; border-radius: 4px; margin: 11px 0;
+    break-inside: avoid; page-break-inside: avoid; font-size: 9.3pt;
+  }
+  .warn   { background: #fffaf0; border-left: 4px solid #dd6b20; }
+  .danger { background: #fff5f5; border-left: 4px solid #c53030; }
+  .info   { background: #ebf8ff; border-left: 4px solid #2b6cb0; }
+  .ok     { background: #f0fff4; border-left: 4px solid #38a169; }
+  .box .t { font-weight: 700; display: block; margin-bottom: 3px; }
+
+  .newpage { break-before: page; page-break-before: always; }
+  .toc a { color: #1a365d; text-decoration: none; }
+  .toc ol { padding-left: 22px; }
+  .toc > ol > li { margin: 5px 0; font-weight: 600; }
+  .toc ol ol { padding-left: 18px; }
+  .toc ol ol li { font-weight: 400; font-size: 9.3pt; color: #4a5568; }
+  .small { font-size: 8.6pt; color: #4a5568; }
+  .nowrap { white-space: nowrap; }
+</style>
+</head>
+<body>
+
+<div class="cover">
+  <h1>Marketplace</h1>
+  <div class="rule"></div>
+  <div class="sub">Dossier technique du frontend</div>
+  <div class="sub" style="font-size:10.5pt">Ce qui est déjà construit &amp; comment continuer sans rien casser</div>
+  <div class="meta">
+    React 19 &nbsp;·&nbsp; Vite 8 &nbsp;·&nbsp; Redux Toolkit / RTK Query<br>
+    React Router 7 &nbsp;·&nbsp; React Hook Form + Zod &nbsp;·&nbsp; Tailwind CSS 4<br><br>
+    Document généré le 6 août 2026<br>
+    Branche <code>main</code> — 9 commits, frontend en cours de construction
+  </div>
+</div>
+
+<h2>Comment lire ce document</h2>
+<p>
+  Complément du <em>Dossier technique du backend</em> (<code>backend-dossier-technique.html</code>),
+  qui documentait l'API avant que le frontend n'existe. Le frontend a depuis été largement entamé —
+  ce document décrit <strong>l'état réel du code aujourd'hui</strong>, pas une recommandation abstraite.
+  Il a deux lecteurs en tête :
+</p>
+<ul>
+  <li><strong>Vous.</strong> Savoir précisément ce qui est déjà câblé, ce qui est une coquille vide,
+      et ce qui n'existe pas encore — pour ne pas reconstruire ce qui existe, ni supposer câblé ce
+      qui ne l'est pas.</li>
+  <li><strong>Un agent IA</strong> à qui vous confierez la suite (panier, commandes, paiement).
+      Les sections 3 (déjà fait), 4 (reste à faire) et 5 (conventions établies) sont écrites pour
+      être données telles quelles comme contexte avant toute nouvelle fonctionnalité.</li>
+</ul>
+<div class="box warn">
+  <span class="t">Le code existant a des conventions — respectez-les</span>
+  Plusieurs choix structurants (URL comme source de vérité pour les filtres, ajustement d'état
+  pendant le rendu plutôt que via <code>useEffect</code>, schémas Zod miroir des DTO backend,
+  tags RTK Query déjà réservés...) sont volontaires et cohérents sur tout le code déjà écrit. Un
+  agent qui les ignore produira un code qui marche isolément mais détonne avec le reste. La
+  section 5 les documente explicitement.
+</div>
+
+<div class="toc">
+<h2>Sommaire</h2>
+<ol>
+  <li><a href="#s1">Vue d'ensemble &amp; pile technique</a></li>
+  <li><a href="#s2">Architecture du socle</a></li>
+  <li><a href="#s3">Ce qui est déjà construit et fonctionnel</a></li>
+  <li><a href="#s4">Ce qui reste à construire</a></li>
+  <li><a href="#s5">Conventions établies à respecter</a></li>
+  <li><a href="#s6">Pièges connus &amp; points de vigilance</a></li>
+  <li><a href="#s7">Ordre de construction suggéré pour la suite</a></li>
+</ol>
+</div>
+
+<!-- ══════════════════ 1 ══════════════════ -->
+<h2 id="s1" class="newpage">1. Vue d'ensemble &amp; pile technique</h2>
+
+<p>
+  SPA React consommant l'API NestJS documentée dans le dossier backend. Trois espaces
+  cohabitent dans la même app, selon le rôle renvoyé par <code>GET /auth/me</code> :
+  <strong>public</strong> (catalogue, fiche produit, auth), <strong>acheteur</strong>
+  (panier, commandes) et <strong>vendeur</strong> (produits, ventes) — plus un espace
+  <strong>admin</strong> pour les catégories.
+</p>
+
+<table>
+  <thead><tr><th style="width:26%">Paquet</th><th style="width:20%">Rôle</th><th>État d'usage</th></tr></thead>
+  <tbody>
+    <tr><td>React 19 + Vite 8</td><td>Socle</td><td>En place, rien de particulier</td></tr>
+    <tr><td><code>@reduxjs/toolkit</code> + <code>react-redux</code></td><td>État global + appels API</td>
+        <td><strong>RTK Query</strong> est le seul client HTTP utilisé — aucun <code>fetch</code> manuel dans le code</td></tr>
+    <tr><td><code>react-router-dom</code> 7</td><td>Routage</td><td><code>createBrowserRouter</code>, routes protégées composées</td></tr>
+    <tr><td><code>react-hook-form</code> + <code>zod</code> + <code>@hookform/resolvers</code></td>
+        <td>Formulaires</td><td>Utilisé sur les 4 formulaires existants (login, register, produit, catégorie)</td></tr>
+    <tr><td>Tailwind CSS 4 (<code>@tailwindcss/vite</code>)</td><td>Styles</td>
+        <td>Configuré <strong>en CSS</strong> (<code>@theme</code> dans <code>index.css</code>), pas de <code>tailwind.config.js</code></td></tr>
+  </tbody>
+</table>
+
+<div class="box danger">
+  <span class="t">Absent : tout ce qui touche à Stripe</span>
+  Ni <code>@stripe/stripe-js</code> ni <code>@stripe/react-stripe-js</code> ne sont dans
+  <code>package.json</code>. Le paiement par carte (§6.3 du dossier backend) nécessitera
+  d'ajouter ces dépendances — ce n'est pas un oubli de câblage, la brique n'existe pas
+  encore dans le projet.
+</div>
+
+<h3>Variables d'environnement</h3>
+<p>
+  <code>vite.config.ts</code> pointe <code>envDir</code> vers la racine du repo
+  (<code>envDir: '../'</code>) : le frontend lit le <code>.env</code> à la racine, pas un
+  <code>frontend/.env</code> séparé. Une seule variable est consommée aujourd'hui,
+  dans <code>lib/apiClient.ts</code> :
+</p>
+<pre><code>baseUrl: import.meta.env.VITE_API_URL   // ex. http://localhost:3000</code></pre>
+<div class="box warn">
+  <span class="t"><code>VITE_API_URL</code> n'est pas dans <code>.env.example</code></span>
+  <code>docker-compose.yml</code> la passe déjà comme argument de build du service
+  <code>frontend</code> (<code>args: VITE_API_URL: ${VITE_API_URL}</code>), mais le fichier
+  <code>.env.example</code> à la racine ne la liste pas encore. Quiconque copie
+  <code>.env.example</code> vers <code>.env</code> sans le savoir aura un frontend qui
+  appelle une URL <code>undefined</code>. À ajouter à <code>.env.example</code> à la
+  prochaine occasion.
+</div>
+
+<h3>Commandes</h3>
+<pre><code>npm run dev        # serveur de dev Vite, http://localhost:5173
+npm run build       # tsc -b && vite build
+npm run lint          # eslint .
+npm run preview</code></pre>
+
+<!-- ══════════════════ 2 ══════════════════ -->
+<h2 id="s2" class="newpage">2. Architecture du socle</h2>
+
+<p>Le socle (état global, client API, routage, guardes) est entièrement en place et stable.</p>
+
+<h3>Arborescence actuelle</h3>
+<pre><code>frontend/src/
+├── app/             store.ts, hooks.ts (useAppDispatch/useAppSelector typés)
+├── components/
+│   ├── layout/      Layout, Header, Footer, AuthLayout, CategoriesMenu, UserMenu
+│   └── ui/          EmptyState, Spinner, ImageUploader, icons.tsx
+├── features/        une tranche verticale par domaine — voir §3 et §4
+│   ├── auth/        authApi.ts, authSlice.ts                         ✅ complet
+│   ├── categories/  categoriesApi.ts, categoryTree.ts, CategoryFilterTree.tsx  ✅ complet
+│   ├── products/    productsApi.ts, ProductCard.tsx, ProductGrid.tsx  ✅ complet (hors bouton panier)
+│   ├── upload/      uploadApi.ts                                     ✅ complet
+│   ├── cart/        cartApi.ts                                       🚧 lecture seule
+│   ├── wishlist/    wishlistSlice.ts                                 ✅ complet (client-only)
+│   ├── orders/      —                                                ❌ n'existe pas
+│   └── payments/    —                                                ❌ n'existe pas
+├── routes/          router.tsx, ProtectedRoute, RoleRoute, RootLayout
+├── pages/
+│   ├── public/      Home, ProductList, ProductDetail, Login, Register, Wishlist   ✅
+│   ├── buyer/        Cart, Checkout, MyPurchases, OrderDetail                     🚧 coquilles
+│   ├── seller/       Dashboard, MySales                                          🚧 coquilles
+│   │                  MyProducts, ProductEditor                                  ✅
+│   └── admin/        Categories                                                  ✅
+├── lib/             apiClient.ts, schemas.ts, errorUtils.ts, orderStatus.ts, useDropdown.ts
+└── types/api.ts      types miroirs des schémas Mongoose (Order/Cart déjà présents, inutilisés)</code></pre>
+
+<h3>Le store Redux (<code>app/store.ts</code>)</h3>
+<pre><code>reducer: {
+  [api.reducerPath]: api.reducer,   // RTK Query — tout l'état serveur
+  auth: authReducer,                 // { token } — persisté dans localStorage
+  wishlist: wishlistReducer,         // { ids } — persisté dans localStorage, jamais côté API
+}</code></pre>
+<p class="small">
+  Pas de reducer <code>cart</code> ni <code>orders</code> : ces domaines n'ont pas d'état
+  local, tout transite par le cache RTK Query une fois câblés.
+</p>
+
+<h3>Le client API (<code>lib/apiClient.ts</code>)</h3>
+<p>Un seul <code>api</code> RTK Query, dans lequel chaque feature injecte ses endpoints :</p>
+<pre><code>tagTypes: ['Me', 'Product', 'Category', 'Cart', 'Order'],
+endpoints: () => ({}),</code></pre>
+<div class="box info">
+  <span class="t">Le tag <code>'Order'</code> est déjà réservé, mais inutilisé</span>
+  Il figure dans <code>tagTypes</code> depuis la mise en place du socle, en anticipation du
+  module commandes. N'ajoutez pas un second tag pour la même chose (<code>'Orders'</code>,
+  <code>'MyOrders'</code>…) — utilisez <code>'Order'</code> tel quel pour rester cohérent avec
+  <code>'Product'</code> et <code>'Category'</code>.
+</div>
+<p>Deux comportements transverses, à ne pas dupliquer ailleurs :</p>
+<ul>
+  <li><strong>Injection du token</strong> — <code>prepareHeaders</code> lit
+      <code>state.auth.token</code> et pose <code>Authorization: Bearer …</code> sur
+      <em>chaque</em> requête. Aucun appel individuel n'a à s'en soucier.</li>
+  <li><strong>Déconnexion globale sur 401</strong> — <code>baseQueryWithAuth</code> observe
+      chaque réponse ; un 401 déclenche <code>dispatch(logout())</code>, qui vide le token et le
+      <code>localStorage</code>. Conforme au constat du dossier backend : pas de refresh token,
+      donc un 401 signifie toujours « session finie ».</li>
+</ul>
+
+<h3>Routage &amp; guardes (<code>routes/</code>)</h3>
+<p>
+  <code>router.tsx</code> déclare l'arbre complet, y compris les routes des pages encore
+  vides (§4) — <strong>le routage n'est pas ce qui manque</strong>, seul le contenu de
+  certaines pages l'est. Deux guards, composés comme des routes wrapper plutôt que vérifiés
+  page par page :
+</p>
+<table>
+  <thead><tr><th style="width:22%">Garde</th><th>Vérifie</th><th>Utilisé pour</th></tr></thead>
+  <tbody>
+    <tr><td><code>ProtectedRoute</code></td><td><code>state.auth.token</code> (Redux, synchrone)</td>
+        <td>Tout écran nécessitant d'être connecté, quel que soit le rôle : <code>/cart</code>,
+            <code>/checkout</code>, <code>/my-purchases</code>, <code>/orders/:id</code></td></tr>
+    <tr><td><code>RoleRoute</code></td><td><code>useGetMeQuery()</code> (réseau, asynchrone) puis <code>allowed.includes(me.role)</code></td>
+        <td>Espaces vendeur (<code>/seller/*</code>) et admin (<code>/admin/*</code>)</td></tr>
+  </tbody>
+</table>
+<p class="small">
+  <code>RoleRoute</code> rend <code>null</code> pendant le chargement de <code>/auth/me</code>
+  plutôt que de rediriger prématurément — évite un flash de redirection avant que la réponse
+  n'arrive. Reproduisez ce motif pour toute nouvelle route dépendant du rôle.
+</p>
+
+<h3>Design tokens (<code>index.css</code>)</h3>
+<p>
+  Palette « noir &amp; blanc moderne + un seul accent » définie via <code>@theme</code> :
+  <code>ink</code>/<code>ink-soft</code>/<code>ink-faint</code>, <code>paper</code>/<code>paper-raised</code>/<code>paper-sunken</code>,
+  <code>line</code>/<code>line-strong</code>, et l'accent <code>clay</code>/<code>clay-dark</code>/<code>clay-soft</code>
+  — utilisé <em>avec parcimonie</em> (promotions, favoris, actions destructives). Deux courbes
+  d'easing personnalisées (<code>--ease-out</code>, <code>--ease-drawer</code>) pour les
+  transitions. Toute nouvelle UI doit consommer ces tokens plutôt que des couleurs Tailwind
+  par défaut (<code>gray-500</code>, <code>blue-600</code>…), pour rester visuellement cohérente
+  avec l'existant.
+</p>
+<div class="box warn">
+  <span class="t">Une incohérence pré-existante à connaître</span>
+  <code>lib/orderStatus.ts</code> (écrit à l'avance pour le module commandes, voir §4) utilise
+  des couleurs Tailwind par défaut (<code>bg-amber-100 text-amber-800</code>…) et non les tokens
+  <code>ink</code>/<code>clay</code>. À l'usage, envisagez de les réaligner sur la palette du
+  reste de l'app plutôt que de les copier tels quels dans un badge de statut.
+</div>
+
+<!-- ══════════════════ 3 ══════════════════ -->
+<h2 id="s3" class="newpage">3. Ce qui est déjà construit et fonctionnel</h2>
+<p class="small">
+  Légende : <span class="badge b-done">FAIT</span> câblé de bout en bout, testé à l'usage ·
+  <span class="badge b-part">PARTIEL</span> l'essentiel fonctionne, un morceau précis manque ·
+  <span class="badge b-stub">COQUILLE</span> route et fichier existent, contenu = texte "en
+  cours de construction" · <span class="badge b-none">ABSENT</span> rien n'existe, pas même
+  le fichier.
+</p>
+
+<h3>3.1 Authentification <span class="badge b-done">FAIT</span></h3>
+<p>
+  <code>features/auth/authApi.ts</code> expose <code>login</code>, <code>register</code>,
+  <code>getMe</code>, <code>logoutApi</code>. Pages <code>Login.tsx</code> / <code>Register.tsx</code>
+  entièrement câblées : validation Zod (<code>lib/schemas.ts</code>), soumission,
+  <code>dispatch(setToken(...))</code>, redirection vers <code>/</code>, affichage d'erreur via
+  <code>getErrorMessage()</code>. Partagent <code>AuthLayout</code> (panneau vitrine avec
+  témoignages tournants, <code>pages/public/authShowcase.ts</code>). Les boutons de connexion
+  sociale (Google/GitHub/Facebook) sont rendus mais <code>disabled</code> — le backend n'expose
+  aucun flux OAuth, ils ne sont pas de faux boutons cliquables sans effet.
+</p>
+
+<h3>3.2 Catalogue public <span class="badge b-done">FAIT</span> (hors action panier)</h3>
+<table>
+  <thead><tr><th style="width:22%">Page</th><th>Contenu</th></tr></thead>
+  <tbody>
+    <tr><td><code>Home.tsx</code></td><td>Hero (3 tuiles), carrousel des catégories racines, grille des 8
+        derniers produits (<code>useGetProductsQuery({ limit: 8 })</code>), bloc acheteur/vendeur</td></tr>
+    <tr><td><code>ProductList.tsx</code></td><td>Catalogue complet : recherche (debounce 350 ms), filtre par
+        catégorie (arbre repliable), pagination — <strong>tout l'état vit dans l'URL</strong>
+        (<code>useSearchParams</code>), pas de <code>useState</code> local pour les filtres.
+        Tiroir de filtres en mobile, squelette de chargement</td></tr>
+    <tr><td><code>ProductDetail.tsx</code></td><td>Fiche produit complète (image, prix barré si promo, stock si
+        physique, catégorie, vendeur). Pas de bouton d'action panier — commentaire explicite dans le
+        code : <code>{/* arrive à l'étape suivante (module cart) */}</code></td></tr>
+  </tbody>
+</table>
+<p class="small">
+  <code>ProductCard.tsx</code> (utilisée par Home, ProductList, Wishlist) affiche note et délai
+  de livraison <strong>statiques</strong> (<code>STATIC_RATING</code>, <code>STATIC_DELIVERY</code>)
+  — l'API ne fournit aucune donnée d'avis pour l'instant, ce n'est pas un bug à corriger sans
+  d'abord décider si/comment le backend exposera des avis.
+</p>
+
+<h3>3.3 Catégories <span class="badge b-done">FAIT</span></h3>
+<p>
+  <code>features/categories/categoriesApi.ts</code> couvre les 5 routes backend (list/get via
+  <code>getCategories</code>, create/update/delete). Utilisé à trois endroits :
+</p>
+<ul>
+  <li><code>CategoriesMenu.tsx</code> (en-tête) et <code>Footer.tsx</code> — lecture seule,
+      construite depuis <code>categoryTree.ts</code></li>
+  <li><code>CategoryFilterTree.tsx</code> — arbre repliable du panneau de filtres, déplie
+      automatiquement le chemin vers la catégorie sélectionnée</li>
+  <li><code>pages/admin/Categories.tsx</code> — CRUD complet (création, édition inline,
+      suppression avec affichage du message d'erreur backend tel quel si la catégorie contient
+      des sous-catégories/produits), upload d'image via <code>ImageUploader</code></li>
+</ul>
+<p class="small">
+  <code>features/categories/categoryTree.ts</code> fournit trois fonctions pures et
+  réutilisables : <code>flattenCategoryTree</code> (liste plate ordonnée avec profondeur, pour
+  les <code>&lt;select&gt;</code>), <code>buildCategoryTree</code> (arbre réel, pour l'UI
+  repliable), <code>getAncestorIds</code> (chemin vers une catégorie, pour déplier
+  automatiquement). Toute nouvelle UI de catégories doit réutiliser ces fonctions plutôt que
+  reparcourir <code>Category[]</code> à la main.
+</p>
+
+<h3>3.4 Espace vendeur — produits <span class="badge b-done">FAIT</span></h3>
+<p><code>features/products/productsApi.ts</code> couvre l'intégralité des 7 routes produits.</p>
+<ul>
+  <li><strong><code>MyProducts.tsx</code></strong> — liste, badge de statut, publier/dépublier
+      (désactivé si <code>suspended</code> — c'est un statut de modération, cf. dossier
+      backend §7 nº2), suppression, lien vers l'édition.</li>
+  <li><strong><code>ProductEditor.tsx</code></strong> — création <em>et</em> édition dans le même
+      composant. Reflète exactement la validation conditionnelle du backend
+      (<code>@ValidateIf</code>) via un <code>z.discriminatedUnion('type', […])</code> dans
+      <code>lib/schemas.ts</code> : bascule physique/numérique = deux jeux de champs
+      (stock/poids/livraison vs référence fichier/limite de téléchargement). Utilise le motif RHF
+      <code>values</code> (et non <code>defaultValues</code>) pour peupler le formulaire une fois
+      la requête d'édition résolue — voir §5.</li>
+</ul>
+<p class="small">
+  Les tags RTK Query (<code>{'{'} type: 'Product', id: 'LIST' {'}'}</code> + un tag par produit)
+  font que <strong>le catalogue public se rafraîchit automatiquement</strong> quand un vendeur
+  publie ou modifie un produit — aucun code de synchronisation supplémentaire n'est nécessaire.
+</p>
+
+<h3>3.5 Upload d'image <span class="badge b-done">FAIT</span></h3>
+<p>
+  <code>features/upload/uploadApi.ts</code> (une seule mutation, <code>FormData</code> avec le
+  champ <code>image</code> attendu par Multer côté backend) + <code>components/ui/ImageUploader.tsx</code>,
+  un composant générique (prévisualisation, suppression, dossier Cloudinary paramétrable via
+  prop <code>folder</code>). Réutilisé tel quel par <code>ProductEditor</code>
+  (<code>marketplace/products</code>) et <code>Categories</code> (<code>marketplace/categories</code>).
+  Toute nouvelle fonctionnalité nécessitant un upload d'image doit réutiliser ce composant, pas
+  en écrire un nouveau.
+</p>
+
+<h3>3.6 Favoris / Wishlist <span class="badge b-done">FAIT</span> — entièrement client</h3>
+<p>
+  <code>features/wishlist/wishlistSlice.ts</code> : aucune route <code>/wishlist</code> côté
+  API — la liste ne stocke que des identifiants produit, persistés dans
+  <code>localStorage</code>, exactement comme le token d'auth. <code>ProductCard</code> (bouton
+  cœur) et <code>pages/public/Wishlist.tsx</code> (grille dédiée, un <code>useGetProductQuery</code>
+  par entrée) sont câblés. Si l'API expose un jour une vraie liste de favoris côté serveur, seul
+  ce fichier change — les composants consommateurs passent par les sélecteurs
+  (<code>selectWishlistIds</code>, <code>selectIsWishlisted</code>), jamais par
+  <code>localStorage</code> directement.
+</p>
+
+<h3>3.7 UI transverse <span class="badge b-done">FAIT</span></h3>
+<p>
+  <code>Header.tsx</code> (recherche, navigation par rôle, badges panier/favoris),
+  <code>Footer.tsx</code>, <code>UserMenu.tsx</code> (menu compte, liens filtrés par rôle),
+  <code>CategoriesMenu.tsx</code>, <code>Spinner</code>, <code>EmptyState</code>. Le hook
+  partagé <code>lib/useDropdown.ts</code> gère fermeture au clic extérieur / Échap / changement
+  de route pour les deux menus déroulants de l'en-tête — à réutiliser pour tout nouveau menu du
+  même type plutôt que de recoder la logique de fermeture.
+</p>
+
+<!-- ══════════════════ 4 ══════════════════ -->
+<h2 id="s4" class="newpage">4. Ce qui reste à construire</h2>
+<p>
+  Trois domaines backend n'ont pas (ou quasiment pas) de contrepartie frontend : le panier,
+  les commandes, les paiements. Le routage et les fichiers de page existent déjà pour la
+  plupart (coquilles avec « Cette page est en cours de construction ») — ce qui manque, c'est
+  la couche <code>features/*Api.ts</code> et le contenu réel des pages.
+</p>
+
+<h3>4.1 Panier <span class="badge b-part">PARTIEL</span> — lecture seule uniquement</h3>
+<p>
+  <code>features/cart/cartApi.ts</code> ne contient <strong>que</strong> <code>getCart</code>,
+  utilisé aujourd'hui pour le seul badge de quantité de l'en-tête. Le backend expose pourtant
+  les 5 routes (voir dossier backend §5.5) :
+</p>
+<pre><code>GET    /cart                    — présent (getCart)
+POST   /cart/items               — absent
+PATCH  /cart/items/:productId    — absent
+DELETE /cart/items/:productId    — absent
+DELETE /cart                     — absent</code></pre>
+<div class="box ok">
+  <span class="t">Rappel utile du dossier backend</span>
+  Les cinq routes renvoient le panier complet recalculé — inutile de raffraîchir via
+  <code>invalidatesTags</code> puis un second aller-retour réseau. Patchez directement le cache
+  RTK Query dans <code>onQueryStarted</code> (<code>updateQueryData('getCart', undefined, …)</code>),
+  ce qui rend aussi la mise à jour du badge de l'en-tête instantanée.
+</div>
+<p>Conséquences visibles ailleurs dans le code, à corriger en même temps :</p>
+<ul>
+  <li><code>ProductCard.tsx</code> — le bouton rond « Ajouter au panier » sous le prix est
+      rendu et stylé mais <strong>n'a aucun <code>onClick</code></strong> (commentaire :
+      « statique, non branché »).</li>
+  <li><code>ProductDetail.tsx</code> — commentaire explicite à la place du bouton d'action.</li>
+  <li><code>pages/buyer/Cart.tsx</code> — coquille vide à remplir : liste des lignes, quantités
+      modifiables, sous-totaux (déjà calculés côté backend, cf. <code>CartItem.subtotal</code>
+      dans <code>types/api.ts</code>), bouton vers <code>/checkout</code>.</li>
+</ul>
+
+<h3>4.2 Commandes <span class="badge b-none">ABSENT</span> — aucune couche API</h3>
+<p>
+  <code>features/orders/</code> n'existe pas. Le type <code>Order</code> est déjà défini dans
+  <code>types/api.ts</code> (avec le commentaire rappelant les deux statuts terminaux), et
+  <code>lib/orderStatus.ts</code> (labels français + couleurs + <code>SUCCESSFUL_STATUSES</code>)
+  est déjà écrit et prêt à l'emploi — mais rien ne les consomme encore. À créer :
+</p>
+<pre><code>features/orders/ordersApi.ts
+  checkout            POST /orders/checkout            { paymentMethod } → Order[]
+  getMyPurchases      GET  /orders/my-purchases         → Order[]
+  getMySales          GET  /orders/my-sales             → Order[]  (seller)
+  getOrder            GET  /orders/:id                  → Order
+  shipOrder           PATCH /orders/:id/ship            (seller)
+  confirmDelivery     PATCH /orders/:id/confirm-delivery
+  cancelOrder         PATCH /orders/:id/cancel</code></pre>
+<div class="box danger">
+  <span class="t">Le piège structurant : le checkout renvoie un TABLEAU</span>
+  Rappel direct du dossier backend §6.1 — un panier avec des articles de plusieurs vendeurs (ou
+  mêlant physique/numérique chez un même vendeur) produit <strong>plusieurs commandes</strong> en
+  un seul appel. <code>Checkout.tsx</code> ne doit jamais faire
+  <code>const order = response[0]</code> : il doit rediriger vers un récapitulatif listant
+  toutes les commandes créées, chacune avec son propre montant et sa propre action de paiement.
+  C'est la décision la plus structurante de toute cette étape — à trancher avant d'écrire le
+  premier composant.
+</div>
+<p>Pages coquilles concernées, à remplir une fois <code>ordersApi</code> en place :</p>
+<ul>
+  <li><code>Checkout.tsx</code> — récapitulatif multi-commandes (voir encadré ci-dessus)</li>
+  <li><code>MyPurchases.tsx</code> / <code>MySales.tsx</code> — listes, à afficher avec
+      <code>ORDER_STATUS_LABELS</code>/<code>ORDER_STATUS_COLORS</code> déjà prêts dans
+      <code>lib/orderStatus.ts</code> plutôt que de redéfinir des libellés</li>
+  <li><code>OrderDetail.tsx</code> — détail + actions selon rôle et statut (expédier,
+      confirmer réception, annuler) — les transitions valides sont documentées dans le dossier
+      backend §6.2, ne pas réinventer la machine à états côté client sans s'y référer</li>
+</ul>
+
+<h3>4.3 Paiements <span class="badge b-none">ABSENT</span> — aucune couche API, dépendances non installées</h3>
+<p>
+  <code>features/payments/</code> n'existe pas non plus. Deux routes à couvrir :
+</p>
+<pre><code>POST  /payments/:orderId/create-intent    (buyer)  → { clientSecret }
+PATCH /payments/:orderId/confirm-cash     (seller) → déclenche markAsPaid()</code></pre>
+<p>Le paiement carte est le plus gros morceau restant :</p>
+<ol>
+  <li>Installer <code>@stripe/stripe-js</code> et <code>@stripe/react-stripe-js</code>
+      (absents de <code>package.json</code> aujourd'hui).</li>
+  <li>Ajouter la clé publique Stripe côté frontend (une nouvelle variable
+      <code>VITE_STRIPE_PUBLISHABLE_KEY</code> ou équivalent — n'existe pas encore, à distinguer
+      de <code>STRIPE_SECRET_KEY</code> qui, elle, reste strictement côté backend).</li>
+  <li>Le webhook (<code>POST /payments/webhook</code>) n'est <strong>jamais</strong> appelé par
+      le frontend — c'est Stripe qui le fait. Après confirmation côté client via Stripe.js, la
+      commande n'est pas immédiatement <code>processing</code> : le dossier backend §6.3
+      recommande un état d'attente (« paiement en cours de confirmation »), pas une redirection
+      qui suppose le statut déjà à jour.</li>
+</ol>
+<p>Le paiement en espèces est plus simple et ne nécessite aucune dépendance nouvelle : un simple
+  bouton « Confirmer réception des espèces » côté vendeur, sur la fiche commande, appelant
+  <code>confirm-cash</code>.</p>
+
+<h3>4.4 Tableau de bord vendeur <span class="badge b-stub">COQUILLE</span></h3>
+<p>
+  <code>Dashboard.tsx</code> est vide. Le backend <strong>n'expose aucune route d'agrégats</strong>
+  dédiée (pas de <code>/seller/stats</code> ou équivalent) — les deux seules sources disponibles
+  sont <code>GET /products/mine</code> (déjà câblé) et <code>GET /orders/my-sales</code> (à
+  câbler, §4.2). Le tableau de bord devra donc calculer ses indicateurs (nombre de produits actifs,
+  commandes en attente, chiffre d'affaires...) <strong>côté client</strong> à partir de ces deux
+  listes, plutôt que de chercher une route d'agrégats qui n'existe pas.
+</p>
+
+<h3>Récapitulatif</h3>
+<table>
+  <thead><tr><th style="width:26%">Domaine</th><th style="width:14%">Couche API</th><th style="width:14%">Pages</th><th>Bloquant principal</th></tr></thead>
+  <tbody>
+    <tr><td>Panier</td><td><span class="badge b-part">PARTIEL</span></td><td><span class="badge b-stub">COQUILLE</span></td>
+        <td>4 mutations à ajouter à <code>cartApi.ts</code></td></tr>
+    <tr><td>Commandes</td><td><span class="badge b-none">ABSENT</span></td><td><span class="badge b-stub">COQUILLE</span></td>
+        <td>Créer <code>ordersApi.ts</code> ; gérer le tableau renvoyé par le checkout</td></tr>
+    <tr><td>Paiements</td><td><span class="badge b-none">ABSENT</span></td><td><span class="badge b-stub">COQUILLE</span></td>
+        <td>Installer les SDK Stripe ; créer <code>paymentsApi.ts</code></td></tr>
+    <tr><td>Dashboard vendeur</td><td>—</td><td><span class="badge b-stub">COQUILLE</span></td>
+        <td>Aucune route backend dédiée — agréger côté client</td></tr>
+  </tbody>
+</table>
+
+<!-- ══════════════════ 5 ══════════════════ -->
+<h2 id="s5" class="newpage">5. Conventions établies à respecter</h2>
+<p>
+  Ces motifs reviennent systématiquement dans le code déjà écrit. Les ignorer produit du code
+  qui fonctionne mais rompt la cohérence — et complique la maintenance pour la prochaine
+  personne (humaine ou agent) qui lira le fichier suivant.
+</p>
+
+<h4>1. Une tranche verticale par domaine, injectée dans l'<code>api</code> unique</h4>
+<pre><code>// features/&lt;domaine&gt;/&lt;domaine&gt;Api.ts
+export const xApi = api.injectEndpoints({ endpoints: (builder) => ({ ... }) });
+export const { useXQuery, useYMutation } = xApi;</code></pre>
+<p>Jamais un second <code>createApi</code> — tout passe par le même client (<code>lib/apiClient.ts</code>)
+  pour partager le cache, les tags et la gestion du 401.</p>
+
+<h4>2. Les schémas Zod sont un miroir exact des DTO backend</h4>
+<p>
+  <code>lib/schemas.ts</code> reproduit fidèlement la validation conditionnelle du backend
+  (<code>@ValidateIf</code> ↔ <code>z.discriminatedUnion</code>). Si un DTO backend change, le
+  schéma Zod correspondant doit changer avec lui — un décalage produit soit des 400 côté
+  backend (champ manquant), soit des rejets côté frontend pour des données que l'API accepterait.
+</p>
+
+<h4>3. L'état de filtrage/recherche vit dans l'URL, pas dans un <code>useState</code></h4>
+<p>
+  <code>ProductList.tsx</code> pilote tout (catégorie, recherche, page) via
+  <code>useSearchParams</code> : lien partageable, bouton « précédent » qui fonctionne, F5 qui
+  ne perd rien. Tout nouvel écran avec filtres/pagination (une future liste de commandes,
+  par exemple) doit suivre le même motif plutôt que réinventer un état local.
+</p>
+
+<h4>4. Ajustement pendant le rendu plutôt que <code>useEffect</code> + <code>setState</code></h4>
+<p>
+  Motif répété trois fois dans le code existant (<code>useDropdown</code>,
+  <code>CategoryFilterTree</code>, le champ de recherche de <code>ProductList</code>) pour
+  synchroniser un état local sur une prop/URL qui change : comparer la valeur courante à une
+  valeur mémorisée <em>pendant le rendu</em>, et ajuster immédiatement si elles divergent — pas
+  dans un <code>useEffect</code>, qui provoquerait un rendu supplémentaire en cascade. C'est le
+  motif React officiellement recommandé pour ce cas ; le réutiliser plutôt que repartir sur un
+  <code>useEffect</code> classique.
+</p>
+
+<h4>5. Formulaires d'édition alimentés en asynchrone : <code>values</code>, pas <code>defaultValues</code></h4>
+<p>
+  <code>ProductEditor.tsx</code> utilise l'option <code>values</code> de React Hook Form pour
+  peupler le formulaire une fois que <code>useGetProductQuery</code> a répondu — contrairement à
+  <code>defaultValues</code>, qui ne se réévalue pas quand la donnée arrive après le premier
+  rendu. Tout futur formulaire d'édition (une commande, un profil…) doit suivre le même motif.
+</p>
+
+<h4>6. Les erreurs API passent toutes par <code>getErrorMessage()</code></h4>
+<p>
+  <code>lib/errorUtils.ts</code> centralise l'extraction d'un message lisible depuis une erreur
+  RTK Query (réseau, timeout, ou <code>{'{'} message, statusCode {'}'}</code> renvoyé par Nest,
+  y compris quand <code>message</code> est un tableau — cas <code>class-validator</code>).
+  Ne pas réinterpréter <code>error.data</code> à la main dans un composant.
+</p>
+
+<h4>7. Duplicité <em>peuplé / brut</em> sur <code>sellerId</code> et <code>categoryId</code></h4>
+<p>
+  Reflet direct d'un choix backend documenté (dossier backend §7 nº8) : ces deux champs sont des
+  <code>string</code> bruts sur certaines routes et des objets peuplés
+  (<code>{'{'} _id, name, ... {'}'}</code>) sur d'autres. <code>types/api.ts</code> les type en
+  union (<code>string | {'{'} ... {'}'}</code>) — tout code qui les lit doit garder le
+  <code>typeof === 'object'</code>, comme le fait déjà <code>ProductDetail.tsx</code>, plutôt que
+  de supposer un seul des deux formats.
+</p>
+
+<!-- ══════════════════ 6 ══════════════════ -->
+<h2 id="s6" class="newpage">6. Pièges connus &amp; points de vigilance</h2>
+
+<div class="box danger">
+  <span class="t">Les boutons « Ajouter au panier » existent visuellement mais ne font rien</span>
+  Sur <code>ProductCard</code> (grille catalogue/accueil/favoris) et absent sur
+  <code>ProductDetail</code>. Un test manuel superficiel du catalogue donne l'impression que
+  « tout marche » jusqu'à cliquer sur ce bouton précis. Premier réflexe en reprenant ce projet :
+  vérifier ce bouton avant de supposer le panier fonctionnel.
+</div>
+
+<div class="box warn">
+  <span class="t">Pas de fusion panier anonyme ↔ panier serveur</span>
+  Le panier backend est lié au compte (<code>cart:&lt;userId&gt;</code> dans Redis, JWT requis
+  sur toutes les routes <code>/cart</code>) — un visiteur non connecté ne peut rien y mettre.
+  <code>useGetCartQuery</code> est déjà appelé avec <code>skip: !token</code> dans le
+  <code>Header</code>, donc ce cas est déjà anticipé pour la lecture. Mais rien ne prépare une
+  fusion d'un panier <code>localStorage</code> constitué hors connexion — si ce comportement est
+  souhaité, c'est un choix produit à trancher avant d'écrire <code>Cart.tsx</code>, pas un détail
+  d'implémentation à improviser en cours de route.
+</div>
+
+<div class="box warn">
+  <span class="t">Deux statuts terminaux pour une commande « réussie »</span>
+  <code>delivered</code> (physique) et <code>completed</code> (numérique) signifient tous deux
+  « commande aboutie ». <code>lib/orderStatus.ts</code> exporte déjà
+  <code>SUCCESSFUL_STATUSES = ['delivered', 'completed']</code> précisément pour éviter qu'un
+  filtre sur <code>'completed'</code> seul ne fasse disparaître silencieusement toutes les
+  commandes physiques livrées d'une liste. Utilisez cette constante, ne la redupliquez pas.
+</div>
+
+<div class="box info">
+  <span class="t">Le rôle n'est qu'une question d'affichage côté client</span>
+  <code>RoleRoute</code> empêche d'atteindre une page, mais rien n'empêche un accès direct à
+  l'API si le token est copié — c'est le backend, via <code>RolesGuard</code>, qui fait
+  réellement autorité. Ne traitez jamais une vérification de rôle frontend comme une mesure de
+  sécurité ; elle sert uniquement l'expérience utilisateur (ne pas montrer un lien vers un écran
+  refusé).
+</div>
+
+<!-- ══════════════════ 7 ══════════════════ -->
+<h2 id="s7" class="newpage">7. Ordre de construction suggéré pour la suite</h2>
+<p>
+  Suite logique de ce qui est déjà bâti — même logique de dépendances que le dossier backend
+  §8 (« Ordre de construction suggéré »), dont les quatre premières étapes (socle, auth,
+  catalogue public, espace vendeur) sont déjà couvertes par ce qui existe.
+</p>
+<ol>
+  <li><strong>Panier :</strong> les 4 mutations manquantes dans <code>cartApi.ts</code>
+      (avec patch de cache via <code>onQueryStarted</code>, §4.1), puis brancher les boutons
+      <code>ProductCard</code>/<code>ProductDetail</code>, puis construire
+      <code>Cart.tsx</code> (lignes, quantités, sous-totaux déjà calculés par l'API).</li>
+  <li><strong>Checkout :</strong> <code>ordersApi.checkout</code>, puis
+      <code>Checkout.tsx</code> — en traitant explicitement le tableau de commandes retourné
+      (§4.2, encadré). C'est l'étape la plus structurante : une mauvaise supposition ici
+      (une seule commande) se répercute sur tout ce qui suit.</li>
+  <li><strong>Commandes :</strong> le reste d'<code>ordersApi.ts</code>
+      (<code>my-purchases</code>, <code>my-sales</code>, <code>:id</code>, transitions de
+      statut), puis <code>MyPurchases.tsx</code>, <code>MySales.tsx</code>,
+      <code>OrderDetail.tsx</code> — en s'appuyant sur <code>lib/orderStatus.ts</code> déjà
+      écrit plutôt qu'en redéfinissant des libellés de statut.</li>
+  <li><strong>Tableau de bord vendeur :</strong> <code>Dashboard.tsx</code>, en agrégeant
+      côté client depuis <code>getMyProducts</code> (existant) et <code>getMySales</code>
+      (étape 3) — rappel : pas de route d'agrégats côté backend (§4.4).</li>
+  <li><strong>Paiement :</strong> en dernier, comme le recommandait déjà le dossier backend —
+      c'est le plus dépendant de tout le reste (une commande doit exister avant de créer un
+      intent) et le seul qui nécessite d'installer de nouvelles dépendances (§4.3). Espèces
+      d'abord (un bouton, aucune dépendance nouvelle), Stripe ensuite.</li>
+</ol>
+
+<div class="box ok" style="margin-top:20px">
+  <span class="t">En résumé</span>
+  Le socle (store, routage, client API, design system) et quatre domaines complets
+  (authentification, catalogue, catégories, gestion des produits vendeur) sont solides et
+  n'ont pas besoin d'être retouchés pour continuer. Ce qui reste — panier, commandes,
+  paiements — a déjà ses types, son routage et, pour les commandes, ses libellés de statut
+  préparés à l'avance. Le travail restant est réel mais cadré : suivre l'ordre ci-dessus évite
+  de buter sur une dépendance manquante à mi-chemin.
+</div>
+
+</body>
+</html>

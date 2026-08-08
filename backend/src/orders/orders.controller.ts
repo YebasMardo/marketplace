@@ -21,7 +21,7 @@ export class OrdersController {
 
   @Post('checkout')
   checkout(@Body() dto: CheckoutDto, @CurrentUser() user: { userId: string }) {
-    return this.ordersService.checkout(user.userId, dto.paymentMethod);
+    return this.ordersService.checkout(user.userId, dto);
   }
 
   @Get('my-purchases')

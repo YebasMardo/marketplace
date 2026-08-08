@@ -1,10 +1,17 @@
 import { useParams, Link } from 'react-router-dom';
 import { useGetProductQuery } from '../../features/products/productsApi';
+import { useAddCartItemMutation } from '../../features/cart/cartApi';
 import { Spinner } from '../../components/ui/Spinner';
 
 export function ProductDetail() {
   const { id } = useParams<{ id: string }>();
   const { data: product, isLoading, isError } = useGetProductQuery(id!);
+  const [addCartItem, { isLoading: isAdding }] = useAddCartItemMutation();
+
+  const handleAddToCart = () => {
+    if (!product) return;
+    addCartItem({ productId: product._id, quantity: 1 });
+  };
 
   if (isLoading) return <Spinner />;
   if (isError || !product) {
@@ -85,7 +92,14 @@ export function ProductDetail() {
           </p>
         )}
 
-        {/* Le bouton "Ajouter au panier" arrive à l'étape suivante (module cart) */}
+        <button
+          type="button"
+          onClick={handleAddToCart}
+          disabled={isAdding || (product.type === 'physical' && !product.stock)}
+          className="mt-6 w-full sm:w-auto px-8 py-3 rounded-full bg-clay text-paper font-semibold transition-colors duration-150 ease-out hover:bg-clay/90 active:scale-95 disabled:opacity-50 disabled:pointer-events-none"
+        >
+          Ajouter au panier
+        </button>
       </div>
     </div>
   );

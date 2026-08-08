@@ -8,6 +8,7 @@ import {
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Order, OrderDocument } from './schemas/order.schema';
+import { CheckoutDto, ShippingDetailsDto } from './dto/checkout.dto';
 import { CartService } from '../cart/cart.service';
 import { ProductsService } from '../products/products.service';
 import { UsersService } from '../users/users.service';
@@ -36,7 +37,7 @@ export class OrdersService {
     private readonly emailService: EmailService,
   ) {}
 
-  async checkout(buyerId: string, paymentMethod: 'stripe' | 'cash') {
+  async checkout(buyerId: string, dto: CheckoutDto) {
     const cart = await this.cartService.getCart(buyerId);
     if (cart.items.length === 0) {
       throw new BadRequestException('Le panier est vide');
@@ -56,6 +57,12 @@ export class OrdersService {
 
         // Seuls les produits physiques ont un stock à décompter.
         if (product.type === 'physical') {
+          // Premier article physique rencontré : c'est ici, et seulement ici,
+          // qu'on sait que la commande devra être expédiée quelque part.
+          // Si l'adresse manque, on sort par le catch : les réservations déjà
+          // prises sur les articles précédents sont rendues normalement.
+          this.assertDeliverable(dto.shipping);
+
           const ok = await this.productsService.decrementStock(
             cartItem.productId,
             cartItem.quantity,
@@ -99,7 +106,11 @@ export class OrdersService {
               0,
             ),
             status: 'pending_payment',
-            paymentMethod,
+            paymentMethod: dto.paymentMethod,
+            // Chaque commande issue d'un même checkout porte sa propre copie
+            // des coordonnées : c'est un instantané, comme les lignes
+            // d'articles, pas une référence partagée.
+            shipping: this.shippingFor(dto.shipping, group.fulfillmentType),
           }),
         ),
       );
@@ -231,6 +242,10 @@ export class OrdersService {
           item.productId.toString(),
         );
         if (product.fileKey) {
+          // Destinataire = l'email DU COMPTE, pas order.shipping.email : ce
+          // dernier est un champ libre saisi au checkout, et l'utiliser
+          // permettrait de rediriger un téléchargement vers une boîte non
+          // vérifiée. Ne pas « corriger » sans y avoir réfléchi.
           await this.emailService.sendDigitalDelivery(
             buyer.email,
             item.title,
@@ -244,6 +259,33 @@ export class OrdersService {
         );
       }
     }
+  }
+
+  // L'adresse postale n'est obligatoire que s'il y a quelque chose à
+  // expédier — voir ShippingDetailsDto, qui la laisse optionnelle parce qu'au
+  // moment de sa validation le contenu du panier est encore inconnu.
+  private assertDeliverable(shipping: ShippingDetailsDto) {
+    const isIncomplete = (
+      ['country', 'city', 'addressLine', 'postalCode'] as const
+    ).some((field) => !shipping[field]?.trim());
+
+    if (isIncomplete) {
+      throw new BadRequestException(
+        'Une adresse de livraison complète (pays, ville, adresse, code postal) est requise pour les articles physiques',
+      );
+    }
+  }
+
+  // Une commande numérique n'a pas d'adresse de livraison : on n'en conserve
+  // que le contact, même si l'acheteur a rempli le reste du formulaire pour
+  // les articles physiques du même panier.
+  private shippingFor(
+    shipping: ShippingDetailsDto,
+    fulfillmentType: 'physical' | 'digital',
+  ) {
+    if (fulfillmentType === 'physical') return shipping;
+    const { fullName, email, phone } = shipping;
+    return { fullName, email, phone };
   }
 
   private async releaseReservations(

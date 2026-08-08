@@ -3,16 +3,21 @@ import { Link } from 'react-router-dom';
 import type { AuthSlide } from '../../pages/public/authShowcase';
 import { COMMUNITY_AVATARS } from '../../pages/public/authShowcase';
 
-/* Classes partagées par les champs des deux formulaires d'auth. Les inputs
-   sont sombres ici (contrairement au reste de l'app) : c'est le parti pris du
-   panneau d'authentification, sur fond clair et dégradé. */
+/* Classes partagées par les champs des deux formulaires d'auth. Champs blancs
+   posés sur le dégradé chaud : le contraste vient de la bordure et de l'ombre
+   portée, pas d'un fond sombre. La bordure est l'unique propriété animée au
+   focus (avec l'anneau) — surtout pas `all`, qui ferait aussi transitionner
+   la couleur du texte saisi. */
 export const authLabelClass =
   'block text-[13px] font-medium text-ink-soft mb-1.5';
 
 export const authInputClass =
-  'w-full rounded-xl bg-ink px-4 py-3 text-[15px] text-paper placeholder:text-ink-faint ' +
-  'border border-transparent transition-[border-color,box-shadow] duration-150 ' +
-  'focus:outline-none focus:border-clay focus:ring-2 focus:ring-clay/30';
+  'w-full rounded-xl bg-paper-raised px-4 py-3 text-[15px] text-ink placeholder:text-ink-faint ' +
+  'border border-line-strong shadow-[0_1px_2px_rgba(17,17,17,0.04)] ' +
+  'transition-[border-color,box-shadow] duration-150 ease-out ' +
+  'hover:border-ink-faint/60 ' +
+  'focus:outline-none focus:border-clay focus:ring-2 focus:ring-clay/25 ' +
+  'aria-[invalid=true]:border-clay/70 aria-[invalid=true]:bg-clay-soft/25';
 
 export const authErrorClass = 'text-[13px] text-clay-dark mt-1.5';
 

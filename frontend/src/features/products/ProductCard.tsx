@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import type { Product } from '../../types/api';
 import { useAppDispatch, useAppSelector } from '../../app/hooks';
 import { selectIsWishlisted, toggleWishlist } from '../../features/wishlist/wishlistSlice';
+import { useAddCartItemMutation } from '../../features/cart/cartApi';
 
 // Statique pour l'instant : les avis ne sont pas encore implémentés côté
 // API. À brancher sur product.rating / product.reviewCount.
@@ -42,6 +43,13 @@ function StarIcon({ className }: { className?: string }) {
 export function ProductCard({ product }: { product: Product }) {
   const dispatch = useAppDispatch();
   const isWishlisted = useAppSelector(selectIsWishlisted(product._id));
+  const [addCartItem, { isLoading: isAdding }] = useAddCartItemMutation();
+
+  const handleAddToCart = (e?: React.MouseEvent) => {
+    e?.preventDefault(); // important ici : le bouton est dans un <Link> étiré
+    e?.stopPropagation();
+    addCartItem({ productId: product._id, quantity: 1 });
+  };
 
   const hasPromo =
     product.promoPrice != null && product.promoPrice < product.price;
@@ -153,11 +161,12 @@ export function ProductCard({ product }: { product: Product }) {
           </p>
         </div>
 
-        {/* Ajout au panier — statique, non branché */}
         <button
           type="button"
           aria-label={`Ajouter ${product.title} au panier`}
-          className="relative z-20 grid place-items-center w-10 h-10 shrink-0 rounded-full border border-clay text-clay transition-colors duration-150 ease-out hover:bg-clay hover:text-paper active:scale-95"
+          onClick={handleAddToCart}
+          disabled={isAdding}
+          className="relative z-20 grid place-items-center w-10 h-10 shrink-0 rounded-full border border-clay text-clay transition-colors duration-150 ease-out hover:bg-clay hover:text-paper active:scale-95 disabled:opacity-50"
         >
           <svg
             viewBox="0 0 24 24"
